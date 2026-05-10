@@ -141,8 +141,8 @@ y0 <- unlist(y0_list)
 lambda0 <- 1e-3
 beta <- as.vector(solve(t(Phi0) %*% Phi0 + lambda0*diag(nbasis), t(Phi0) %*% y0))
 
-#update
-
+# Stochastic gradient descent procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(sub_sds[K])
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
@@ -151,8 +151,6 @@ for(K in 1:Kmax){
   y <- unlist(dat$y)
   mfull <- mfull + mk[K]
   
-  # Stochastic gradient descent procedure
-  # Each iteration K corresponds to one incoming data block.
   Phi <- eval_basis(x)
   resid <- y - Phi %*% beta
   
