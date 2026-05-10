@@ -1,4 +1,32 @@
-#basic functions
+# ============================================================
+# Basic Functions for OCRL and Kernel
+#
+# This file contains the core functions used in the proposed Online Change Rate Learning (OCRL) framework, including:
+# 1. Online local polynomial estimators;
+# 2. Offline kernel estimators;
+# 3. Bandwidth-related pilot estimation functions;
+# 4. Data generation utilities;
+# 5. Kernel and auxiliary utility functions.
+#
+# The functions support both:
+#   d = 1 : the mean derivative estimation;
+#   d = 2 : the derivative estimation of the covariance .
+# ============================================================
+# FUNCTION: online_LL
+  # Purpose: Perform the online local linear regression for streaming functional data.
+  # Inputs:
+  #   x: Numeric vector (if d=1) or matrix of dimension n x d (if d=2). 
+  #   y: Numeric vector of responses with length n. 
+  #   eval: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
+  #   h: Numeric. Initial bandwidth parameter.
+  #   L: Integer. Number of candidate bandwidths.
+  #   res_list: List. Contain the online sufficient statistics and centroids.
+  #   N: Integer. The total number of measurements for all the subjects.
+  #   n: Integer. The number of subjects.
+  #   d: Integer (1 or 2). Dimensionality of the covariate x.
+  # Output: Updated res_list containing the updated sufficient statistics 
+  #         and the updated candidate bandwidth centroids for online estimation based on local linear regression.
+# ============================================================
 {
   online_LL <- function(x, y, eval, h, L, res_list, N, n, d){
     
@@ -66,6 +94,14 @@
     
     return(res_list)
   }
+# ============================================================
+# FUNCTION: online_LQuad2
+#
+# Purpose: Perform the online local quadratic regression for streaming functional data. 
+# Inputs: x, y, eval, h, L, res_list, N, n, d: Same as online_LL.
+# Output: Updated res_list containing the updated sufficient statistics 
+#         and the updated candidate bandwidth centroids for online estimation based on local quadratic regression.
+# ============================================================
   online_LQuad2 <- function(x, y, eval, h, L, res_list, N, n, d){
     
     eta <- sapply(1:L, function(l){ ((L-l+1) / L) ^ (1/(6+d)) * h}) 
@@ -129,6 +165,14 @@
     
     return(res_list)
   }
+# ============================================================
+# FUNCTION: online_LCub3
+#
+# Purpose: Perform the online local cubic regression for streaming functional data. 
+# Inputs: x, y, eval, h, L, res_list, N, n, d: Same as online_LL.
+# Output: Updated res_list containing the updated sufficient statistics 
+#         and the updated candidate bandwidth centroids for online estimation based on local cubic regression.
+# ============================================================
   online_LCub3 <- function(x, y, eval, h, L, res_list, N, n, d){
     
     eta <- sapply(1:L, function(l){ ((L-l+1) / L) ^ (1/(d+8)) * h})
@@ -200,6 +244,14 @@
     
     return(res_list)
   }
+# ============================================================
+# FUNCTION: online_LCub3
+#
+# Purpose: Perform the online local quartic regression for streaming functional data. 
+# Inputs: x, y, eval, h, L, res_list, N, n, d: Same as online_LL.
+# Output: Updated res_list containing the updated sufficient statistics 
+#         and the updated candidate bandwidth centroids for online estimation based on local quartic regression.
+# ============================================================
   online_LQuar4 <- function(x, y, eval, h, L, res_list, N, n, d){
     
     eta <- sapply(1:L, function(l){ ((L-l+1) / L) ^ (1/(d+8)) * h})
@@ -277,6 +329,12 @@
     
     return(res_list)
   }
+# ============================================================
+# FUNCTION: batch_LL
+# Purpose: Perform the offline local linear regression for streaming functional data.
+# Inputs: x, y, eval, h, L, res_list, N, n, d: Same as online_LL.
+# Output: A list containing the density estimation and the mean/covariance function estimation at the evaluation points.
+# ============================================================
   batch_LL <- function(x, y, eval, h, N, d){
     
     if(d==1){
@@ -341,6 +399,12 @@
     names(res) <- c('den','est','estder')
     return(res)
   }
+# ============================================================
+# FUNCTION: batch_LQuad2
+# Purpose: Perform the offline local quadratic regression for streaming functional data.
+# Inputs: x, y, eval, h, N, d: Same as batch_LL.
+# Output: A list containing the density estimation and the first-order derivative estimation at the evaluation points.
+# ============================================================
   batch_LQuad2 <- function(x, y, eval, h, N, d){
     
     if(d==1){
@@ -402,6 +466,13 @@
     names(res) <- c('den','est')#,'sec_der')
     return(res)
   }
+# ============================================================
+# FUNCTION: batch_LCub3
+# Purpose: Perform the offline local cubic regression for streaming functional data.
+# Inputs: x, y, eval, h, N, d: Same as batch_LL.
+# Output: A list containing the density estimation, the second-order derivative estimation, 
+#         and the pilot estimation used in the plug-in bandwidth selection procedure at the evaluation points. 
+# ============================================================
   batch_LCub3 <- function(x, y, eval, h, N, d){
     
     if(d==1){ 
@@ -468,6 +539,13 @@
     names(res) <- c('den','sec_der','theta')
     return(res)
   }
+# ============================================================
+# FUNCTION: batch_LQuar4
+# Purpose: Perform the offline local quartic regression for streaming functional data.
+# Inputs: x, y, eval, h, N, d: Same as batch_LL.
+# Output: A list containing the density estimation, the third-order derivative estimation,
+#         and the pilot estimation used in the plug-in bandwidth selection procedure at the evaluation points. 
+# ============================================================
   batch_LQuar4 <- function(x, y, eval, h, N, d){
     
     if(d==1){ 
@@ -539,9 +617,23 @@
     names(res) <- c('den','thi_der','theta')
     return(res)
   }
+# ============================================================
+# FUNCTION: Epan
+# Purpose: Compute the Epanechnikov kernel function.
+# z: Numeric vector or scalar.
+# Output: Numeric vector of kernel weights evaluated at z.
+# ============================================================
   Epan <- function(z){
     return( 3/4 * (1-z^2) * (abs(z)<1) )
   } 
+# ============================================================
+# FUNCTION: gene_data
+# Purpose: Generate the simulated functional data under the model considered in the manuscript.
+# Inputs:
+# mk: Integer. Number of subjects.
+# njk: Integer vector of length mk containing the number of measurements for each subject.
+# Output: A list containing the time points and the observed responses for each subject.
+# ============================================================
   gene_data <- function(mk, njk){
     
     t <- lapply(1:mk, function(i) runif(njk[i],a,b))
@@ -555,11 +647,23 @@
     y <- lapply(1:mk, function(i) mu[[i]] + 
                   rowSums(matrix(rep(kesi[i,],each=njk[i]),ncol=Mpc)
                           * phi[[i]]) + e[[i]])
-    #z <- mu_z + as.vector(t(beta0)%*%t(kesi)) + rnorm(mk,0,0.1) #??
+    #z <- mu_z + as.vector(t(beta0)%*%t(kesi)) + rnorm(mk,0,0.1) 
     mylist <- list(t,y)
     names(mylist) <- c('t','y')
     return(mylist)
   }
+# ============================================================
+# FUNCTION: gene_gam_data
+# Purpose: Construct pseudo observations for the covariance estimation based on the residual products.
+# Inputs:
+# NK: Integer. The total number of observations for all subjects.
+# njk: Integer vector of length mk containing the number of measurements for each subject.
+# mk: The number of subjects.
+# x: Numeric vector of the time points with length NK.
+# y: Numeric vector of the observed responses with length NK.
+# Output: A list containing the numeric matrix of dimension M x 2 paired time points for the covariance function estimation 
+#         and the numeric vector of length M residual cross-products corresponding to u.
+# ============================================================
   gene_gam_data<-function(NK, njk, mk, x, y, mu_est){
     
     coor1 <- unlist(sapply(1:NK, function(i) 
@@ -579,6 +683,14 @@
     names(res) <- c('u','v')
     return(res)
   }  
+# ============================================================
+# FUNCTION: sign_complex
+# Purpose: Compute the sign of real or complex inputs.
+# For the complex numbers, the sign is defined using the modulus.
+# Inputs:
+# x: Numeric or complex vector/scalar.
+# Output: Numeric sign (-1, 0, or 1).
+# ============================================================
   sign_complex <- function(x) {
     if (is.complex(x)) {
       return(sign(Mod(x)))
