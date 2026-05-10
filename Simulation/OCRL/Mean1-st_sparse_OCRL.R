@@ -1,5 +1,5 @@
 ################# sparse - online #################
-rm(list=ls())
+
 source("./basic functions.R", encoding = 'UTF-8')
 
 fun_mu <- function(t){ 5*sin(2*pi*t) }
