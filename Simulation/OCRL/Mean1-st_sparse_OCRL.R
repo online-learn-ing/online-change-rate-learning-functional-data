@@ -6,7 +6,7 @@
 # Workflow:
 #   1. Generate sparse streaming functional data.
 #   2. Recursively update the online sufficient statistics.
-#   3. Obtain the pilot estimation.
+#   3. Estimate the plug-in bandwidth components.
 #   4. Perform the online local quadratic regression.
 #   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
 #
