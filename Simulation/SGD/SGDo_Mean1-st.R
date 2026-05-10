@@ -1,7 +1,6 @@
 ###########################
 # Mean Derivative Estimation (Dense or Sparse) 
 
-rm(list=ls())
 library(fda)
 
 # Function definitions
