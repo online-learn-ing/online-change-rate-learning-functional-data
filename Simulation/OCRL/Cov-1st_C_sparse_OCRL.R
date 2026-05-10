@@ -24,7 +24,9 @@ Mpc <- 10
 lam <- 0.4*(1:Mpc)^(-2)
 # Time points domain.
 a <- 0; b <- 1
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Evaluation grids.
 eval_mu <- seq(a,b,length.out = EV1)
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
@@ -40,17 +42,23 @@ fun_phi <- function(t){
 G <- 0.9
 Kmax <- 20
 sub.streams <- c(1,seq(10,Kmax,10))
+# Sparse design setting:
+# number of subjects per incoming block.
 mk_mean <- 18; mk_std <- 3
 mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
+# Sparse longitudinal measurements:
+# each subject contains approximately 8 observations.
 njk_mean <- 8; njk_std <- 2
 njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=11 & njk>=5)]
 njk <- njk[1:sum(mk)]
 
-# --- --- ---
+# Initialize counters
 set.seed(12345)
 N <- 0; mfull <- 0; N_gam <- 0
 sigma_gam5 <- 0
+
+# Initialize online estimators
 res_sigma_gam1 <- list()
 res_sigma_gam1$centroids <- rep(0, 3)
 res_sigma_gam1$P <- array(0, dim = c(3,3,EV2^2,3))
@@ -62,6 +70,8 @@ res_theta_gam$P <- array(0, dim = c(15,15,EV2^2,3))
 res_theta_gam$q <- array(0, dim = c(15,EV2^2,3))
 dens <- list(); deris <- list(); s5 <- c()
 
+# Online updating procedure 
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
@@ -75,7 +85,8 @@ for(K in 1:Kmax){
   u <- res_gam_data$u; v <- res_gam_data$v
   NK_gam <- sum(njk1 * (njk1 - 1))
   N_gam <- N_gam + NK_gam
-
+  
+  # Estimate curvature functional
   # --- theta ---
   h_theta_gam <- G * N_gam^(-1/10)
   res_theta_gam <- online_LQuar4(u, v, eval_gam_mat, h_theta_gam, 3, res_theta_gam, N_gam, NK_gam, 2)
@@ -88,6 +99,7 @@ for(K in 1:Kmax){
   den <- matrix(res_theta_gam$P[1,1, ,1], EV2, EV2)
   dens <- c(dens, list(den)); deris <- c(deris, list(gam_thi_deri))
   
+  # Estimate variance functionals
   # --- sigma ---
   h_sigma_gam <- G * N_gam^(-1/6)
   res_sigma_gam1 <- online_LL(u, v, eval_gam_mat, h_sigma_gam,
@@ -114,7 +126,7 @@ for(K in 1:Kmax){
   s5 <- c(s5, sigma_gam5)
 }
 
-# --- Calculate C parameter ---
+# Compute plug-in constant C
 th <- c()
 for(k in 1:length(dens)){
   den <- dens[[k]]
