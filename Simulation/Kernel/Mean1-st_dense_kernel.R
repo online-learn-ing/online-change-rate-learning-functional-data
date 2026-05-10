@@ -88,10 +88,11 @@ for(K in 1:Kmax){
                  (eps_hat > mean(eps_hat)-3*sqrt(var(eps_hat))))
     eps_hat <- eps_hat[idx]
     sigma_eps <- mean(eps_hat^2)
-    # Estimate theta
+    # Bandwidth estimation 
+    # Estimate the curvature functional theta_mu used in the plug-in bandwidth selector.
     h_theta_mu <- 1.2*N^(-1/9)
     theta_mu <- batch_LQuar4(x, y, eval_mu, h_theta_mu, N, 1)
-    # Estimate mean and its MSE
+    # Estimate the curvature functional sigma_mu.
     h_sigma_mu <- G * N^(-1/5)
     res <- batch_LL(x, y, eval_mu, h_sigma_mu, N, 1)
     mu <- res$est
@@ -112,6 +113,7 @@ for(K in 1:Kmax){
     sigma_mu <- 2.142857*mean(rr) + s2
     theta1 <-  mean((theta_mu$den[15:85] * (theta_mu$thi_der)[15:85]^2))
     h_mu1 <- (27*5.444444* sigma_mu /theta1)^(1/7) * N^(-1/7)
+    # Final derivative estimation
     mu1 <- batch_LQuad2(x, y, eval_mu, h_mu1, N, 1)$est
     t1 <- Sys.time()
     time <- c(time,difftime(t1,t0,units = 'secs'))
