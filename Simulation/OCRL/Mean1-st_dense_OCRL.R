@@ -1,5 +1,23 @@
 ################# dense - online #################
-
+# ============================================================
+# SCRIPT: Mean1-st_dense_OCRL.R
+# Purpose:
+#   Conduct simulation studies for estimating the first-order derivative of the mean function 
+#   under dense functional data using the proposed online change rate learning (OCRL) method.
+# Workflow:
+#   1. Generate dense streaming functional data.
+#   2. Recursively update the online sufficient statistics.
+#   3. Estimate the plug-in bandwidth components.
+#   4. Perform the online local quadratic regression.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+#
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Bandwidth sequences;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
 
 fun_mu <- function(t){ 5*sin(2*pi*t) }
