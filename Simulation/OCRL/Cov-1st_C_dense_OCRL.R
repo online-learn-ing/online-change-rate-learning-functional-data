@@ -1,12 +1,30 @@
 ################## dense - online##################
-
+# ============================================================
+# SCRIPT: Cov-1st_C_dense_OCRL.R
+#
+# Purpose: Conduct the plug-in bandwidth constant for estimating the covariance function 
+           under dense functional data using the proposed online change rate learning (OCRL) method.
+# Workflow:
+#   1. Generate dense streaming functional data.
+#   2. Construct the covariance-pair observations from within-subject measurements.
+#   3. Recursively update the online sufficient statistics.
+#   4. Estimate curvature and variance functionals for bandwidth selection.
+#   5. Compute the plug-in bandwidth constant.
+#
+# Output:
+#   The script produces:
+#     - Plug-in bandwidth constants.
+# ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
 
 # --- Parameters & Functions ---
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Evaluation grids.
 eval_mu <- seq(a, b, length.out = EV1)
 eval_gam_vec <- seq(a, b, length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec, each=EV2), rep(eval_gam_vec, EV2))
@@ -23,20 +41,21 @@ G <- 0.9
 Kmax <- 300
 sub.streams <- c(1,seq(20,Kmax,20))
 mk <- rep(3, Kmax); mk[1] <- 10
+# Dense design setting:
+# each subject contains approximately 20 observations.
 njk_mean <- 20; njk_std <- 2
 njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=25 & njk>=15)]
 njk <- njk[1:sum(mk)]
 
-#=============
-
+# Initialize counters
 N <- 0; mfull <- 0; N_gam <- 0; N_3 <- 0; N_4 <- 0
 N_gam1 <- c(); N_3c <- c(); N_4c <- c()
 E1s5 <- c(); E2s5 <- c(); E3s5 <- c()
 dens <- list(); deris <- list()
 time_band <- c()
 
-# --- Initialize online estimator objects ---
+# Initialize online estimators
 res_sigma_gam1 <- list()
 res_sigma_gam1$centroids <- rep(0, 3)
 res_sigma_gam1$P <- array(0, dim = c(3,3,EV2^2,3))
@@ -47,6 +66,8 @@ res_theta_gam$centroids <- rep(0, 3)
 res_theta_gam$P <- array(0, dim = c(15,15,EV2^2,3))
 res_theta_gam$q <- array(0, dim = c(15,EV2^2,3))
 
+# Online updating procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
@@ -66,6 +87,7 @@ for(K in 1:Kmax){
   N_4c <- c(N_4c,N_4)
 
   t0<-Sys.time()
+  # Estimate curvature functional
   # --- theta ---
   h_theta_gam <- G * N_gam^(-1/10)
   res_theta_gam <- online_LQuar4(u, v, eval_gam_mat, h_theta_gam, 3, res_theta_gam, N_gam, NK_gam, 2)
@@ -78,7 +100,7 @@ for(K in 1:Kmax){
   den <- matrix(res_theta_gam$P[1,1, ,1], EV2, EV2)
   dens<-c(dens,list(den)); deris<-c(deris,list(gam_thi_deri))
   
-  # --- sigma ---
+  # Estimate variance functionals
   h_sigma_gam <- G * N_gam^(-1/6)
   res_sigma_gam1 <- online_LL(u, v, eval_gam_mat, h_sigma_gam,
                               3, res_sigma_gam1, N_gam, NK_gam, 2)
@@ -87,7 +109,8 @@ for(K in 1:Kmax){
   })
   den <- sapply(1:EV2^2, function(i){res_sigma_gam1$P[1,1,i,1]})
   denm <- matrix(den,EV2, EV2)
-  
+
+  # Residual-based variance estimation
   rr <- v - sapply(1:NK_gam, function(i){
     gam[which.min(abs(u[i,1]-eval_gam_mat[,1])+
                     abs(u[i,2]-eval_gam_mat[,2]))]
@@ -102,7 +125,8 @@ for(K in 1:Kmax){
   })
   r <- matrix(r0,EV2, EV2)
   gamm <- matrix(gam, EV2, EV2)
-  sigma_eps <- 0.5 # demo value
+  sigma_eps <- 0.5 
+  # Compute asymptotic variance terms
   E1_new <- mean(r) + 4*mean(diag(gamm))*sigma_eps + 2*sigma_eps^2+ mean(diag(r))
   E2_new <- mean(r*sqrt(denm)) + 2*mean(diag(gamm*sqrt(denm)))*sigma_eps + mean(diag(r*sqrt(denm))) 
   h_den1 <- 0.5 * N^(-1/5)
@@ -119,7 +143,7 @@ for(K in 1:Kmax){
   time_band <- c(time_band, difftime(t1,t0,units = 'secs'))
 }
 
-# --- Calculate C parameter ---
+# Compute plug-in constant C
 theta1 <- sapply(seq_along(dens), function(k){
   den <- dens[[k]]
   deri <- deris[[k]]
