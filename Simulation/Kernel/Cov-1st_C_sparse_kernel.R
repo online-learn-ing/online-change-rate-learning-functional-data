@@ -5,7 +5,7 @@
 #          the covariance function under sparse functional data using the offline kernel method.
 # This method serves as a benchmark for comparing with the online change rate learning (OCRL) method.
 # Workflow:
-#   1. Generate dense functional data.
+#   1. Generate sparse functional data.
 #   2. Construct the covariance-pair observations within-subject measurements.
 #   3. Compute the plug-in bandwidth constant C.
 # Output:
@@ -16,8 +16,11 @@ source("./basic functions.R", encoding = 'UTF-8')
 # --- Parameters and Functions ---
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Evaluation grids.
 eval_mu <- seq(a,b,length.out = EV1)
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
@@ -38,6 +41,8 @@ for(i in 1:EV2)
 G <- 0.9
 Kmax <- 20
 sub.streams <- c(1,seq(10,Kmax,10))
+# Sparse design setting:
+# each subject contains approximately 8 observations.
 mk_mean <- 18; mk_std <- 3
 mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 njk_mean <- 8; njk_std <- 2
@@ -45,12 +50,14 @@ njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)
 njk <- njk[which(njk<=11 & njk>=5)]
 njk <- njk[1:sum(mk)]
 
-# --- --- ---
+# Initialize counters
 x <- c(); y <- c(); z <- c()
 N <- 0; mfull <- 0; N_gam <- 0
 s <- c()
 dens <- list(); deris <- list()
 
+# Offline kernel procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   mfull <- mfull + mk[K]
@@ -67,15 +74,17 @@ for(K in 1:Kmax){
     res_gam_data <- gene_gam_data(N, njk1, mfull, x, y, mu_est)
     u <- res_gam_data$u; v <- res_gam_data$v
     N_gam <- sum(njk1 * (njk1 - 1))
-    
+    # Estimate curvature functional
     # --- theta ---
     h_theta_gam <- G * N_gam^(-1/10)
     res <- batch_LQuar4(u, v, eval_gam_mat, h_theta_gam, N_gam, 2)
     dens <- c(dens, list(matrix(res$den, EV2, EV2)))
     deris <- c(deris, list(matrix(res$thi_der, EV2, EV2)))
+    # Estimate variance functionals
     # --- sigma ---
     h_sigma_gam <- G * N_gam^(-1/6)
     gam <- batch_LL(u, v, eval_gam_mat, h_sigma_gam, N_gam, 2)$est
+    # Residual-based variance estimation
     r <- (v - sapply(1:N_gam, function(i){
       gam[which.min(abs(u[i,1]-eval_gam_mat[,1])+
                     abs(u[i,2]-eval_gam_mat[,2]))]
@@ -91,7 +100,7 @@ for(K in 1:Kmax){
   }
 }
 
-# --- Calculate C parameter ---
+# Compute plug-in constant C
 th <- c()
 for(k in 1:length(dens)){
   den <- dens[[k]]
