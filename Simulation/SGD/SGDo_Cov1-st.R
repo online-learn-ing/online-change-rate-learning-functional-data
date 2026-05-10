@@ -1,8 +1,27 @@
 ################# dense #################
-
+# ============================================================
+# SCRIPT: SGDo_Cov1-st.R
+# Purpose: Estimate the first-order partial derivative from streaming functional data 
+#          using the stochastic gradient descent with B-spline basis expansion.
+# Workflow:
+#   1. Generate dense or sparse steaming functional data.
+#   2. Construct the covariance-pair observations within-subject measurements.
+#   3. Initialize the covariance estimator using ridge regression.
+#   4. Recursively update the spline coefficients using SGD.
+#   5. Estimate the first-order partial derivative of the covariance function.
+#   6. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order covariance derivatives;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 # Function definitions
+# True mean function
 fun_mu <- function(t){ 5*sin(2*pi*t) }
+# True mean derivative
 fun_mu1 <- function(t){ 5*2*pi*cos(2*pi*t)}
+# Eigenfunctions for data generation
 fun_phi <- function(t){
   phi <- matrix(0,length(t),Mpc)
   phi[,1] <- sqrt(2) * cos(2*pi*t)
@@ -11,6 +30,7 @@ fun_phi <- function(t){
   phi[,4] <- sqrt(2) * sin(4*pi*t)
   return(phi)
 }
+# Data generator
 gene_data <- function(mk, njk){
   t <- lapply(1:mk, function(i) runif(njk[i],a,b))
   e <- lapply(1:mk, function(i) rnorm(njk[i],0,0.5))
@@ -28,17 +48,20 @@ gene_data <- function(mk, njk){
   return(mylist)
 }
 
-# Simulation parameters
+# Parameters
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100; EV2 <- 50
+# Evaluation grid for the mean derivative estimation.
 eval_mu <- seq(a,b,length.out = EV1)
 mu_true1 <- fun_mu1(eval_mu)
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
 Kmax <- 40
 
+# Choose one of the following setups ("dense" or "sparse"):
 ## ------ Dense setup ------
 njk_mean <- 25; njk_std <- 2
 mk <- rep(3, Kmax); mk[1] <- 10
@@ -71,10 +94,12 @@ for(i in 1:EV2)
 gam1_truem <- matrix(gam1_true,EV2,EV2)
 
 library(fda)
+# B-spline basis construction for covariance estimation
 nbasis_cov   <- 5
 norder_cov   <- 4
 basisObj_cov <- create.bspline.basis(rangeval=c(a,b), nbasis=nbasis_cov, norder=norder_cov)
 eval_basis_cov  <- function(t) eval.basis(t, basisObj_cov)
+# Roughness penalty matrix
 D2_cov    <- diff(diag(nbasis_cov), differences=2)
 Omega_single <- t(D2_cov) %*% D2_cov
 Omega_cov <- kronecker(diag(nbasis_cov), Omega_single) + kronecker(Omega_single, diag(nbasis_cov))
@@ -90,6 +115,7 @@ eps_cov <- 1e-8
 momentum_cov <- rep(0, nbasis_cov^2)
 mu_mom_cov <- 0.9
 
+# Initialization
 set.seed(12345)
 mfull     <- 0
 cov_time  <- c()
@@ -137,7 +163,8 @@ theta <- as.vector(solve(t(Psi0) %*% Psi0 + lambda0_cov * Omega_cov, t(Psi0) %*%
 theta_bar <- theta
 step_i    <- 1
 
-# Online update for each batch
+# Stochastic gradient descent procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   t_start_online <- Sys.time()
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
@@ -168,20 +195,23 @@ for(K in 1:Kmax){
   }
   
   if(length(s_pairs) == 0) next
-  
+  # SGD update
   Phi_s <- eval_basis_cov(s_pairs)
   Phi_t <- eval_basis_cov(t_pairs)
   Psi <- t(sapply(1:length(s_pairs), function(i) kronecker(Phi_s[i,], Phi_t[i,])))
   gamma_hat <- as.vector(Psi %*% theta)
   grad_cov <- -2 * t(Psi) %*% (resid_prod - gamma_hat)  + 2 * lambda_cov * (Omega_cov %*% theta)
+  # RMSProp scaling
   Eg2_cov   <- rho_cov * Eg2_cov + (1 - rho_cov) * (grad_cov^2)
   adj_cov   <- grad_cov / sqrt(Eg2_cov + eps_cov)
+  # Momentum acceleration
   momentum_cov <- mu_mom_cov * momentum_cov + (1 - mu_mom_cov) * adj_cov
   etaK_cov <- eta0_cov / ((1 + gamma_cov * K)^alpha_cov)
   theta <- theta - etaK_cov * momentum_cov
+  # Polyak averaging
   theta_bar <- ((step_i-1) * theta_bar + theta) / step_i
   step_i   <- step_i + 1
-  
+  # Estimate derivative covariance surface
   eval_dbasis_s <- eval.basis(eval_gam_vec, basisObj_cov, Lfd=1)
   eval_basis_t  <- eval.basis(eval_gam_vec, basisObj_cov, Lfd=0)
   gam1_est <- matrix(NA, nrow=EV2, ncol=EV2)
@@ -192,6 +222,7 @@ for(K in 1:Kmax){
     }
   }
   t_end_online <- Sys.time()
+  #save
   cov_time <- c(cov_time, difftime(t_end_online, t_start_online, units = 'secs'))
   gam1s <- c(gam1s,list(gam1_est))
   rss_gam1 <- c(rss_gam1, mean((gam1_est - gam1_truem)^2))
