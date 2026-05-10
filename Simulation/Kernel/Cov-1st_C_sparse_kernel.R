@@ -1,5 +1,4 @@
 #################### sparse - kernel ####################
-rm(list=ls())
 
 source("./basic functions.R", encoding = 'UTF-8')
 
