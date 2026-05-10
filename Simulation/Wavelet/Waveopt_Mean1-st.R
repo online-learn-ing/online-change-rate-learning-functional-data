@@ -1,6 +1,5 @@
 ##############################################
 # Mean Derivative Estimation
-rm(list=ls())
 
 # Required libraries
 library(fda.usc)
