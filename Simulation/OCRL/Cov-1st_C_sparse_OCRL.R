@@ -1,10 +1,28 @@
 #################### sparse - online ####################
+# ============================================================
+# SCRIPT: Cov-1st_C_sparse_OCRL.R
+#
+# Purpose: Conduct the plug-in bandwidth constant estimation for the covariance function 
+#          under sparse functional data using the proposed online change rate learning (OCRL) method.
+#
+# Workflow:
+#   1. Generate sparse streaming functional data.
+#   2. Construct covariance-pair observations from within-subject measurements.
+#   3. Recursively update the online sufficient statistics.
+#   4. Estimate curvature and variance functionals for bandwidth selection.
+#   5. Compute the plug-in bandwidth constant.
+#
+# Output:
+#   The script produces:
+#     - Plug-in bandwidth constants.
+# ============================================================
 
 source("./basic functions.R", encoding = 'UTF-8')
 
 # --- Parameters and Functions ---
 Mpc <- 10
 lam <- 0.4*(1:Mpc)^(-2)
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100; EV2 <- 50
 eval_mu <- seq(a,b,length.out = EV1)
