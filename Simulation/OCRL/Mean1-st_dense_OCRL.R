@@ -55,7 +55,6 @@ njk <- njk[1:sum(mk)]
 
 # Initialize online statistics
 L1 <- 3 # The length of the candidate bandwidth sequences
-
 N <- 0; mfull <- 0
 res_theta_mu <- list()
 res_theta_mu$centroids <- rep(0, L1)
@@ -114,7 +113,7 @@ for(K in 1:Kmax){
   eps_hat <- eps_hat[idx]
   sigma_eps <- mean(eps_hat^2)
   rm(data)
-  
+  # Bandwidth estimation # Estimate the curvature functional theta_mu used in the plug-in bandwidth selector.
   h_theta_mu <- 0.55 * N^(-1/9)
   res_theta_mu <- online_LQuar4(x, y, eval_mu, h_theta_mu, L1, res_theta_mu, N, NK, 1)
   mu_thi_deri <- sapply(1:EV1, function(i){
@@ -122,7 +121,8 @@ for(K in 1:Kmax){
   })
   theta_mu <-  mean(res_theta_mu$P[1,1, ,1] * mu_thi_deri^2)
   den <- sapply(1:EV1, function(i){res_theta_mu$P[1,1,i,1]})
-  
+
+  # Estimate the asymptotic variance component sigma_mu.
   h_sigma_mu <- G * N^(-1/5)
   res_sigma_mu1 <- online_LL(x, y, eval_mu, h_sigma_mu, L1, res_sigma_mu1, N, NK, 1)
   mu <- sapply(1:EV1, function(i){
@@ -156,6 +156,7 @@ for(K in 1:Kmax){
   sigma_mu <- 2.142857*mean(rr)+s2
   
   h_mu1 <- min((27 *5.444444* sigma_mu / theta_mu)^(1/7) * N^(-1/7), 1)
+  # Final derivative estimation
   res_mu <- online_LQuad2(x, y, eval_mu, h_mu1, L1, res_mu, N, NK, 1)
   mu1 <- sapply(1:EV1, function(i){
     (solve(res_mu$P[,,i,1]+diag(1e-12,3)) %*% matrix(res_mu$q[,i,1],3,1))[2]
