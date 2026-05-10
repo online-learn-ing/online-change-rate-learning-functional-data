@@ -10,7 +10,6 @@
 #   3. Estimate the plug-in bandwidth components.
 #   4. Perform the online local quadratic regression.
 #   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
-#
 # Output:
 #   The script produces:
 #     - Estimated first-order derivatives;
@@ -20,8 +19,13 @@
 # ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
 
+############################
+# Generate simulation setup
+############################
+# Mean function and its first-order derivative.
 fun_mu <- function(t){ 5*sin(2*pi*t) }
 fun_mu1 <- function(t){ 5*2*pi*cos(2*pi*t)}
+# Eigenfunctions used to generate functional trajectories.
 fun_phi <- function(t){
   phi <- matrix(0,length(t),4)
   phi[,1] <- sqrt(2) * cos(2*pi*t)
@@ -30,13 +34,14 @@ fun_phi <- function(t){
   phi[,4] <- sqrt(2) * sin(4*pi*t)
   return(phi)
 }
-
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100; EV2 <- 50
 eval_mu <- seq(a,b,length.out = EV1)
 mu_true1 <- fun_mu1(eval_mu)
+# Evaluation grid for the mean derivative estimation.
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
 G <- 0.8
@@ -48,7 +53,8 @@ njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=30 & njk>=20)]
 njk <- njk[1:sum(mk)]
 
-L1 <- 3 
+# Initialize online statistics
+L1 <- 3 # The length of the candidate bandwidth sequences
 
 N <- 0; mfull <- 0
 res_theta_mu <- list()
@@ -86,6 +92,8 @@ sigma <- c(); theta<-c(); mus <- c()
 theta_mu1 <- c(); r1 <- c()
 sigma_mu1 <- c(); rss1i <- c()
 
+# Online updating procedure
+# Each iteration K corresponds to one incoming data block in the online learning procedure.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
