@@ -1,25 +1,15 @@
 ################## dense - kernel##################
 # ============================================================
 # SCRIPT: Cov-1st_C_dense_kernel.R
-# Purpose: Estimate the covariance function (and its derivative structure)
-#   under dense functional data using a kernel-based batch estimator.
-#   This version serves as a benchmark for comparing with the
-#   online change rate learning (OCRL) method.
-#
+# Purpose: Conduct the plug-in bandwidth constant for estimating the first-order partial derivative of 
+#          the covariance function under dense functional data using the offline kernel method.
+# This method serves as a benchmark for comparing with the online change rate learning (OCRL) method.
 # Workflow:
-#   1. Generate dense functional data from a latent model.
-#   2. Construct covariance-pair observations within subjects.
-#   3. Estimate covariance surface using kernel-based batch smoothing.
-#   4. Estimate derivative-related functionals for curvature.
-#   5. Compute true covariance surface for evaluation.
-#   6. Aggregate results across selected stream points.
-#   7. Compute plug-in bandwidth constant C.
-#
+#   1. Generate dense functional data.
+#   2. Construct the covariance-pair observations within-subject measurements.
+#   3. Compute the plug-in bandwidth constant C.
 # Output:
-#   - Estimated covariance surfaces
-#   - Derivative-based curvature estimates
 #   - Plug-in bandwidth constants C
-#   - Performance tracking over stream updates
 # ============================================================
 
 source("./basic functions.R", encoding = 'UTF-8')
@@ -27,8 +17,11 @@ source("./basic functions.R", encoding = 'UTF-8')
 # --- Parameters & Functions ---
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Evaluation grids.
 eval_mu <- seq(a, b, length.out = EV1)
 eval_gam_vec <- seq(a, b, length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec, each=EV2), rep(eval_gam_vec, EV2))
@@ -49,6 +42,8 @@ for(i in 1:EV2)
 G <- 0.9
 Kmax <- 300
 sub.streams <- c(1,seq(20,Kmax,20))
+# Dense design setting:
+# each subject contains approximately 20 observations.
 mk <- rep(3, Kmax); mk[1] <- 10
 njk_mean <- 20; njk_std <- 2
 njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
