@@ -1,5 +1,26 @@
 ################## dense - kernel##################
-
+# ============================================================
+# SCRIPT: Cov-1st_C_dense_kernel.R
+# Purpose: Estimate the covariance function (and its derivative structure)
+#   under dense functional data using a kernel-based batch estimator.
+#   This version serves as a benchmark for comparing with the
+#   online change rate learning (OCRL) method.
+#
+# Workflow:
+#   1. Generate dense functional data from a latent model.
+#   2. Construct covariance-pair observations within subjects.
+#   3. Estimate covariance surface using kernel-based batch smoothing.
+#   4. Estimate derivative-related functionals for curvature.
+#   5. Compute true covariance surface for evaluation.
+#   6. Aggregate results across selected stream points.
+#   7. Compute plug-in bandwidth constant C.
+#
+# Output:
+#   - Estimated covariance surfaces
+#   - Derivative-based curvature estimates
+#   - Plug-in bandwidth constants C
+#   - Performance tracking over stream updates
+# ============================================================
 
 source("./basic functions.R", encoding = 'UTF-8')
 
