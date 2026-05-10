@@ -1,7 +1,28 @@
 ################# sparse - online #################
+# ============================================================
+# SCRIPT: Mean1-st_sparse_OCRL.R
+# Purpose: Conduct simulation studies for estimating the first-order derivative of the mean function 
+#          under sparse functional data using the proposed online change rate learning (OCRL) method.
+# Workflow:
+#   1. Generate sparse streaming functional data.
+#   2. Recursively update the online sufficient statistics.
+#   3. Obtain the pilot estimation.
+#   4. Perform the online local quadratic regression.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+#
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Bandwidth sequences;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 
 source("./basic functions.R", encoding = 'UTF-8')
 
+############################
+# Generate simulation setup
+############################
 fun_mu <- function(t){ 5*sin(2*pi*t) }
 fun_mu1 <- function(t){ 5*2*pi*cos(2*pi*t)}
 fun_phi <- function(t){
@@ -28,8 +49,10 @@ njk <- sapply(1:(2*8*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=12 & njk>=4)]
 njk <- njk[1:sum(mk)]
 
-L1 <- 3 
-
+############################
+# Initialize online statistics
+############################
+L1 <- 3 # Number of candidate bandwidths.
 N <- 0; mfull <- 0
 res_theta_mu <- list()
 res_theta_mu$centroids <- rep(0, L1)
@@ -65,6 +88,8 @@ time <- c(); rss1 <- c(); h1 <- c()
 sigma <- c(); theta<-c(); mus <- c()
 sigma_mu1 <- c(); rss1i <- c()
 
+# Online updating
+# Each iteration K corresponds to one incoming data block in the online learning procedure.
 set.seed(12345)
 for(K in 1:Kmax){
   set.seed(12345 + K)
@@ -86,7 +111,8 @@ for(K in 1:Kmax){
   eps_hat <- eps_hat[idx]
   sigma_eps <- mean(eps_hat^2)
   rm(data)
-  
+  # Bandwidth estimation
+  # Estimate the curvature functional theta_mu used in the plug-in bandwidth selector.
   h_theta_mu <- 0.55 * N^(-1/9)
   res_theta_mu <- online_LQuar4(x, y, eval_mu, h_theta_mu, L1, res_theta_mu, N, NK, 1)
   mu_thi_deri <- sapply(1:EV1, function(i){
@@ -94,7 +120,8 @@ for(K in 1:Kmax){
   })
   theta_mu <-  mean(res_theta_mu$P[1,1, ,1] * mu_thi_deri^2)
   den <- sapply(1:EV1, function(i){res_theta_mu$P[1,1,i,1]})
-  
+
+  # Estimate the asymptotic variance component sigma_mu.
   h_sigma_mu <- G * N^(-1/5)
   res_sigma_mu1 <- online_LL(x, y, eval_mu, h_sigma_mu, L1, res_sigma_mu1, N, NK, 1)
   mu <- sapply(1:EV1, function(i){
@@ -128,6 +155,7 @@ for(K in 1:Kmax){
   sigma_mu <- 2.142857*mean(rr)+s2
   
   h_mu1 <- min((27 *5.444444* sigma_mu / theta_mu)^(1/7) * N^(-1/7), 1)
+  # Final derivative estimation
   res_mu <- online_LQuad2(x, y, eval_mu, h_mu1, L1, res_mu, N, NK, 1)
   mu1 <- sapply(1:EV1, function(i){
     (solve(res_mu$P[,,i,1]+diag(1e-12,3)) %*% matrix(res_mu$q[,i,1],3,1))[2]
