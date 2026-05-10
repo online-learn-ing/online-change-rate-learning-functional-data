@@ -6,7 +6,7 @@
 #          using the proposed online change rate learning (OCRL) method.
 # Workflow:
 #   1. Generate streaming functional data under dense or sparse designs.
-#   2. Construct covariance-pair observations from within-subject measurements.
+#   2. Construct the covariance-pair observations from within-subject measurements.
 #   3. Recursively update the online sufficient statistics.
 #   4. Perform online local quadratic regression for estimating the first-order partial derivative of the covariance function.
 #   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
