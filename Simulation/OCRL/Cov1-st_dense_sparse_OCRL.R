@@ -1,4 +1,31 @@
 ################## dense & sparse - online ##################
+# ============================================================
+# SCRIPT: Cov-1st_dense_sparse_OCRL.R
+#
+# Purpose:
+#   Conduct simulation studies for estimating the first-order
+#   derivative of the covariance function under both dense and
+#   sparse functional data settings using the proposed online
+#   change rate learning (OCRL) method.
+#
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse
+#      longitudinal designs.
+#   2. Construct covariance-pair observations from within-subject
+#      measurements.
+#   3. Recursively update the online sufficient statistics.
+#   4. Perform online local quadratic regression for estimating
+#      the first-order covariance derivative.
+#   5. Evaluate estimation accuracy using mean integrated squared
+#      error (MISE).
+#
+# Output:
+#   The script produces:
+#     - Estimated first-order covariance derivatives;
+#     - Bandwidth sequences;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 
 source("./basic functions.R", encoding = 'UTF-8')
 
