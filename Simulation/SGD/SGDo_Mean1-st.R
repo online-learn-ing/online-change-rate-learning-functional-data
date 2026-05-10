@@ -4,7 +4,7 @@
 # Purpose: Estimate the mean function and its first derivative from streaming functional data 
 #          using the stochastic gradient descent with B-spline basis expansion.
 # Workflow:
-#   1. Generate dense or sparse functional observations.
+#   1. Generate dense or sparse steaming functional data.
 #   2. Construct B-spline basis representation.
 #   3. Initialize coefficients using ridge regression.
 #   4. Update spline coefficients online using SGD + RMSProp + momentum.
