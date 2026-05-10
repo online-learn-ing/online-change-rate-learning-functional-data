@@ -50,7 +50,7 @@ njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=25 & njk>=15)]
 njk <- njk[1:sum(mk)]
 
-# --- ---- ---
+# Initialize counters
 x <- c(); y <- c()
 N <- 0; mfull <- 0; N_gam <- 0
 E1s <- c(); E2s <- c(); E3s <- c()
@@ -58,6 +58,8 @@ N_gam1 <- c(); N_3 <- c(); N_4 <- c()
 time_band <- c()
 deris <- list(); dens <- list()
 
+# Offline kernel procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   mfull <- mfull + mk[K]
@@ -78,11 +80,13 @@ for(K in 1:Kmax){
     N_4 <- c(N_4,sum(njk1 * (njk1 - 1)*(njk1 - 2)*(njk1 - 3)))
     
     t0<-Sys.time()
+    # Estimate curvature functional
     # --- theta ---
     h_theta_gam <- G * N_gam^(-1/10)
     res <- batch_LQuar4(u, v, eval_gam_mat, h_theta_gam, N_gam, 2)
     dens <- c(dens,list(matrix(res$den,EV2,EV2)))
     deris <- c(deris,list(matrix(res$thi_der,EV2,EV2)))
+    # Estimate variance functionals
     # --- sigma ---
     h_sigma_gam <- G * N_gam^(-1/6)
     res2 <- batch_LL(u, v, eval_gam_mat, h_sigma_gam, N_gam, 2)
@@ -92,12 +96,14 @@ for(K in 1:Kmax){
       gam[which.min(abs(u[i,1]-eval_gam_mat[,1])+
                       abs(u[i,2]-eval_gam_mat[,2]))]
     })
+    # Residual-based variance estimation
     r <- rr^2
     r[r>(mean(r)+5*sqrt(var(r)))] <- mean(r)
     r[r<(mean(r)-5*sqrt(var(r)))] <- mean(r)
     r0 <- batch_LL(u, r, eval_gam_mat, h_sigma_gam, N_gam, 2)$est
     r <- matrix(r0, EV2, EV2)
     gamm <- matrix(gam, EV2, EV2)
+    # Compute asymptotic variance terms
     E1 <- mean(r) + 4*mean(diag(gamm))*sigma_eps + 2*sigma_eps^2+ mean(diag(r))
     E2 <- mean(r*sqrt(denm)) + 2*mean(diag(gamm*sqrt(denm)))*sigma_eps + mean(diag(r*sqrt(denm))) 
     h_den1 <- 0.5 * N^(-1/5)
@@ -114,7 +120,7 @@ for(K in 1:Kmax){
   }
 }
 
-# --- Calculate C parameter ---
+# Compute plug-in constant C
 theta1 <- sapply(seq_along(dens), function(k){
   den <- dens[[k]]
   deri <- deris[[k]]
