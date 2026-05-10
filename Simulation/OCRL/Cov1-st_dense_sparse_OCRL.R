@@ -1,24 +1,15 @@
 ################## dense & sparse - online ##################
 # ============================================================
 # SCRIPT: Cov-1st_dense_sparse_OCRL.R
-#
-# Purpose:
-#   Conduct simulation studies for estimating the first-order
-#   derivative of the covariance function under both dense and
-#   sparse functional data settings using the proposed online
-#   change rate learning (OCRL) method.
-#
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the covariance function under both dense and sparse functional data settings
+#          using the proposed online change rate learning (OCRL) method.
 # Workflow:
-#   1. Generate streaming functional data under dense or sparse
-#      longitudinal designs.
-#   2. Construct covariance-pair observations from within-subject
-#      measurements.
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Construct covariance-pair observations from within-subject measurements.
 #   3. Recursively update the online sufficient statistics.
-#   4. Perform online local quadratic regression for estimating
-#      the first-order covariance derivative.
-#   5. Evaluate estimation accuracy using mean integrated squared
-#      error (MISE).
-#
+#   4. Perform online local quadratic regression for estimating the first-order partial derivative of the covariance function.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
 # Output:
 #   The script produces:
 #     - Estimated first-order covariance derivatives;
@@ -29,14 +20,18 @@
 
 source("./basic functions.R", encoding = 'UTF-8')
 
-# --- Parameters ---
+# Parameters and model setup
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Time domain.
 a <- 0; b <- 1
+# Evaluation grids.
 eval_mu <- seq(a,b,length.out = EV1)
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
+# Eigenfunctions and derivatives
 fun_phi <- function(t){
   phi <- matrix(0,length(t),Mpc)
   phi[,1] <- sqrt(2) * cos(2*pi*t)
@@ -55,16 +50,16 @@ fun_phi1 <- function(t){
 }
 G <- 0.9
 Kmax <- 500
-L2 <- 20 # Number of local polynomials for online estimator
+L2 <- 20 # the length of the candidate bandwidth sequences
 
-#dense common parameters
+# Dense design setting
 mk <- rep(3, Kmax); mk[1] <- 10
 njk_mean <- 20; njk_std <- 2
 njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=25 & njk>=15)]
 njk <- njk[1:sum(mk)]
 
-# sparse common parameters
+# Sparse design setting
 mk_mean <- 18; mk_std <- 3
 mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 njk_mean <- 8; njk_std <- 2
@@ -72,7 +67,7 @@ njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)
 njk <- njk[which(njk<=11 & njk>=5)]
 njk <- njk[1:sum(mk)]
 
-# --- Calculate true derivative covariance matrix ---
+# Calculate true covariance derivative surface
 gam1_true <- c()
 for(i in 1:EV2)
   for(j in 1:EV2){
@@ -80,7 +75,7 @@ for(i in 1:EV2)
   }
 gam1_truem <- matrix(gam1_true,EV2,EV2)
 
-# --- --- ---
+# Initialize counters and online estimators
 N <- 0; mfull <- 0; N_gam <- 0; N_gam1 <- c()
 C_old <- 1.2 # Fixed C for demonstration
 res_gam <- list()
@@ -88,7 +83,8 @@ res_gam$centroids <- rep(0, L2)
 res_gam$P <- array(0, dim = c(6,6,EV2^2,L2))
 res_gam$q <- array(0, dim = c(6,EV2^2,L2)
 rss2 <- c(); h2 <- c(); rss2i <- c(); time <- c(); gam1s <- list()
-
+# Online updating procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   njk1 <- njk[(mfull+1):(mfull+mk[K])]
@@ -104,12 +100,14 @@ for(K in 1:Kmax){
   N_gam1 <- c(N_gam1,N_gam)
   
   t0 <- Sys.time()
+  # Bandwidth selection
   if(K<=300){
     C_gam <- C
   }else{
     C_gam <- C[300]
   }
   h_gam <- C_gam * N_gam^(-1/8)
+  # Online covariance derivative estimation
   res_gam <- online_LQuad2(u, v, eval_gam_mat, h_gam, L2, res_gam, N_gam, NK_gam, 2)
   gam1 <- sapply(1:EV2^2, function(i){
     (solve(res_gam$P[,,i,1]+diag(1e-12,6)) %*% matrix(res_gam$q[,i,1],6,1))[2]
