@@ -2,7 +2,7 @@
 
 Overview
 
-1. Directory `Simulation` contains the main functions required to perform simulations for the proposed online change rate learnig (OCRL), as well as several classical offline and online comparative methods. Specifically,
+1. Directory `Simulation` contains the main functions required to perform simulations for the proposed online change rate learning (OCRL), as well as several classical offline and online comparative methods. Specifically,
 
 1.1 The sub-directory `OCRL` contains the functions for the OCRL algorithm.
 
@@ -12,7 +12,7 @@ Overview
 
        The R scripts `Cov-1st_C_dense_OCRL.R`, `Cov-1st_C_sparse_OCRL.R` and `Cov1-st_dense_sparse_OCRL.R` estimate the first-order derivative of the covariance function under the dense and sparse settings.
 
-1.2 The sub-directory `Kernel` contains the functions for the classical local ploynomial regression. 
+1.2 The sub-directory `Kernel` contains the functions for the classical local polynomial regression. 
 
       The R scripts `Mean1-st_dense_kernel.R`, `Mean1-st_sparse_kernel.R`, `Cov-1st_C_dense_kernel`, `Cov-1st_C_sparse_kernel.R` and `Cov1-st_dense_sparse_kernel.R` estimate the first-order derivatives of the mean and covariance functions under the dense and sparse settings.
 
@@ -28,11 +28,11 @@ Overview
 
 1.5 The sub-directory `Wavelet` contains the functions for conducting simulations using the wavelet-based method.
       
-      The R script `Waveopt_Cov1-st.R` provides the essential functions for the spline-based method.
+      The R script `Waveopt_Cov1-st.R` provides the essential functions for the wavelet-based method.
 
       The R scripts `Waveopt_Mean1-st.R` and `Waveopt_Cov1-st_fun.R` estimate the first-order derivatives of the mean and covariance functions under the dense and sparse settings.
 
-2. Directory `Realdata` contains the prerocess for the two real data examples which are available in the following links:
+2. Directory `Realdata` contains the preprocess for the two real data examples which are available in the following links:
 
 - ***Power_Consumption*** : https://www.eia.gov/electricity.
 - ***US_Traffic_Accident*** :  https://smoosavi.org/datasets/us_accidents.
