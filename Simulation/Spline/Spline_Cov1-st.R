@@ -1,8 +1,6 @@
 ###############################
 # Covariance Derivative Estimation
 
-rm(list=ls())
-
 # Required libraries
 library(fda)
 library(Matrix)
