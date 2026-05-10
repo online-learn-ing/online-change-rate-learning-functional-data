@@ -1,7 +1,26 @@
 ################# sparse - kernel #################
-
+# ============================================================
+# SCRIPT: Mean1-st_sparse_kernel.R
+# Purpose:
+#   Conduct simulation studies for estimating the first-order derivative of the mean function 
+#   under sparse functional data using the offline kernel method.
+# Workflow:
+#   1. Generate sparse streaming functional data.
+#   2. Estimate the plug-in bandwidth components.
+#   4. Perform the offline local quadratic regression.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Bandwidth sequences;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
-
+############################
+# Generate simulation setup
+############################
+# Mean function and its first-order derivative.
 fun_mu <- function(t){ 5*sin(2*pi*t) }
 fun_mu1 <- function(t){ 5*2*pi*cos(2*pi*t)}
 fun_phi <- function(t){
@@ -15,8 +34,10 @@ fun_phi <- function(t){
 
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100; EV2 <- 50
+# Evaluation grid for the mean derivative estimation.
 eval_mu <- seq(a,b,length.out = EV1)
 mu_true1 <- fun_mu1(eval_mu)
 eval_gam_vec <- seq(a,b,length.out = EV2)
@@ -29,12 +50,15 @@ njk <- sapply(1:(2*8*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=12 & njk>=4)]
 njk <- njk[1:sum(mk)]
 
+# Initialize offline statistics 
 x <- c(); y <- c()
 N <- 0; mfull <- 0
 time <- c(); rss1 <- c(); h1 <- c()
 sigma <- c(); mus <- c(); theta <- c()
 sigma_mu1 <- c(); rss1i <- c()
 
+# Offline kernel procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   mfull <- mfull + mk[K]
@@ -59,10 +83,11 @@ for(K in 1:Kmax){
                  (eps_hat > mean(eps_hat)-3*sqrt(var(eps_hat))))
     eps_hat <- eps_hat[idx]
     sigma_eps <- mean(eps_hat^2)
-    # Estimate theta
+    # Bandwidth estimation 
+    # Estimate the curvature functional theta_mu used in the plug-in bandwidth selector.
     h_theta_mu <- 1.2*N^(-1/9)
     theta_mu <- batch_LQuar4(x, y, eval_mu, h_theta_mu, N, 1)
-    # Estimate mean and its MSE
+   # Estimate the curvature functional sigma_mu.
     h_sigma_mu <- G * N^(-1/5)
     res <- batch_LL(x, y, eval_mu, h_sigma_mu, N, 1)
     mu <- res$est
@@ -83,6 +108,7 @@ for(K in 1:Kmax){
     sigma_mu <- 2.142857*mean(rr) + s2
     theta1 <-  mean((theta_mu$den[15:85] * (theta_mu$thi_der)[15:85]^2))
     h_mu1 <- (27*5.444444* sigma_mu /theta1)^(1/7) * N^(-1/7)
+    # Final derivative estimation
     mu1 <- batch_LQuad2(x, y, eval_mu, h_mu1, N, 1)$est
     t1 <- Sys.time()
     time <- c(time,difftime(t1,t0,units = 'secs'))
