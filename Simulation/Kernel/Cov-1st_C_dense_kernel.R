@@ -1,5 +1,5 @@
 ################## dense - kernel##################
-rm(list=ls())
+
 source("./basic functions.R", encoding = 'UTF-8')
 
 # --- Parameters & Functions ---
