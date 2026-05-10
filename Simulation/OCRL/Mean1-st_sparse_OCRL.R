@@ -23,8 +23,10 @@ source("./basic functions.R", encoding = 'UTF-8')
 ############################
 # Generate simulation setup
 ############################
+# Mean function and its first-order derivative. 
 fun_mu <- function(t){ 5*sin(2*pi*t) }
 fun_mu1 <- function(t){ 5*2*pi*cos(2*pi*t)}
+# Eigenfunctions used to generate functional trajectories.
 fun_phi <- function(t){
   phi <- matrix(0,length(t),4)
   phi[,1] <- sqrt(2) * cos(2*pi*t)
@@ -36,8 +38,10 @@ fun_phi <- function(t){
 
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100; EV2 <- 50
+# Evaluation grid for the mean derivative estimation. 
 eval_mu <- seq(a,b,length.out = EV1)
 mu_true1 <- fun_mu1(eval_mu)
 G <- 0.8
@@ -52,7 +56,7 @@ njk <- njk[1:sum(mk)]
 ############################
 # Initialize online statistics
 ############################
-L1 <- 3 # Number of candidate bandwidths.
+L1 <- 3 # The length of the candidate bandwidth sequences
 N <- 0; mfull <- 0
 res_theta_mu <- list()
 res_theta_mu$centroids <- rep(0, L1)
