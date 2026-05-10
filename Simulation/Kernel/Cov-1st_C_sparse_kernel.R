@@ -1,5 +1,16 @@
 #################### sparse - kernel ####################
-
+# ============================================================
+# SCRIPT: Cov-1st_C_sparse_kernel.R
+# Purpose: Conduct the plug-in bandwidth constant for estimating the first-order partial derivative of 
+#          the covariance function under sparse functional data using the offline kernel method.
+# This method serves as a benchmark for comparing with the online change rate learning (OCRL) method.
+# Workflow:
+#   1. Generate dense functional data.
+#   2. Construct the covariance-pair observations within-subject measurements.
+#   3. Compute the plug-in bandwidth constant C.
+# Output:
+#   - Plug-in bandwidth constants C
+# ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
 
 # --- Parameters and Functions ---
