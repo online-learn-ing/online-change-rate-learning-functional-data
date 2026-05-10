@@ -34,13 +34,30 @@ Overview
 
 2. Directory `Realdata` contains the prerocess for the two real data examples which are available in the following links:
 
-<<<<<<< HEAD
 - ***Power_Consumption*** : https://www.eia.gov/electricity.
 - ***US_Traffic_Accident*** :  https://smoosavi.org/datasets/us_accidents.
 
-      The R scripts `dense_mean1-st_online and batch.R`and `sparse_mean1-st_online and batch.R` provide the codes for analyzing the hourly power consumption data in megawatts.
+      The R scripts `dense_mean1-st_online_and_batch.R`and `sparse_mean1-st_online_and_batch.R` provide the codes for analyzing the hourly power consumption data in megawatts.
       
-      The R scripts `count_USAcc_dense_mean1-st_online and batch.R` and `count_USAcc_sparse_mean1-st_online and batch.R` provide the codes for analyzing the traffic accident data from the United States.
+      The R scripts `count_USAcc_dense_mean1-st_online_and_batch.R` and `count_USAcc_sparse_mean1-st_online_and_batch.R` provide the codes for analyzing the traffic accident data from the United States.
+
+# Reproducibility Workflow
+
+The code was developed under R version 4.4.2 and depends only on widely used CRAN packages, including doParallel, dplyr, fda, fda.usc, foreach, KernSmooth, Matrix, mgcv, pracma, and wavethresh.
+
+To reproduce the numerical results in the manuscript, users may follow the workflow below.
+
+1. Simulation Studies
+(1). Navigate to the directory Simulation.
+(2). Choose one of the above subdirectories depending on the method of interest.
+(3). Run the corresponding scripts according to the sampling scheme:
+*_dense_*.R for dense functional data, *_sparse_*.R for sparse functional data,*_Mean1-st_*.R for the first-order derivative estimation of the mean function, *_Cov1-st_*.R for the first-order partial derivative of the covariance function.
+
+The scripts automatically generate the simulation results and figures reported in the manuscript.
+
+2. Real Data Applications
+
+The real data analyses are located in the directory Realdata. The empirical analyses can be reproduced by running the R.file in the sub-directory.
 
 
 
