@@ -1,7 +1,5 @@
 #############Mean1-st##################
 
-rm(list=ls())
-
 # Required libraries
 library(fda)
 source("./Spline_Mean1-st_fun.R", encoding = 'UTF-8')
