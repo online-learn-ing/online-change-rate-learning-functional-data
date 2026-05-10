@@ -37,9 +37,9 @@ Overview
 - ***Power_Consumption*** : https://www.eia.gov/electricity.
 - ***US_Traffic_Accident*** :  https://smoosavi.org/datasets/us_accidents.
 
-      The R scripts `dense_mean1-st_online_and_batch.R`and `sparse_mean1-st_online_and_batch.R` provide the codes for analyzing the hourly power consumption data in megawatts.
+      The R scripts `dense_mean1-st_online_and_kernel.R`and `sparse_mean1-st_online_and_kernel.R` provide the codes for analyzing the hourly power consumption data in megawatts.
       
-      The R scripts `count_USAcc_dense_mean1-st_online_and_batch.R` and `count_USAcc_sparse_mean1-st_online_and_batch.R` provide the codes for analyzing the traffic accident data from the United States.
+      The R scripts `count_USAcc_dense_mean1-st_online_and_kernel.R` and `count_USAcc_sparse_mean1-st_online_and_kernel.R` provide the codes for analyzing the traffic accident data from the United States.
 
 # Reproducibility Workflow
 
