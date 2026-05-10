@@ -1,15 +1,20 @@
-################## dense - batch ##################
+################## dense & sparse - kernel ##################
 
 source("./basic functions.R", encoding = 'UTF-8')
 
-# --- Parameters ---
+# Parameters and model setup
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
+# Number of evaluation grid points.
 EV1 <- 100; EV2 <- 50
+# Time domain.
 a <- 0; b <- 1
+# Evaluation grids.
 eval_mu <- seq(a,b,length.out = EV1)
+# grid for covariance surface 
 eval_gam_vec <- seq(a,b,length.out = EV2)
 eval_gam_mat <- cbind(rep(eval_gam_vec,each=EV2), rep(eval_gam_vec,EV2))
+# Eigenfunctions and derivatives
 fun_phi <- function(t){
   phi <- matrix(0,length(t),Mpc)
   phi[,1] <- sqrt(2) * cos(2*pi*t)
@@ -30,14 +35,14 @@ G <- 0.9
 Kmax <- 500
 sub.streams <- c(1,seq(20,Kmax,20))
 
-#dense
+# Dense design setting
 mk <- rep(3, Kmax); mk[1] <- 10
 njk_mean <- 20; njk_std <- 2
 njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=25 & njk>=15)]
 njk <- njk[1:sum(mk)]
 
-#sparse
+# Sparse design setting
 mk_mean <- 18; mk_std <- 3
 mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 njk_mean <- 8; njk_std <- 2
@@ -45,7 +50,7 @@ njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)
 njk <- njk[which(njk<=11 & njk>=5)]
 njk <- njk[1:sum(mk)]
 
-# --- Calculate true derivative covariance matrix ---
+# Calculate true covariance derivative surface
 gam1_true <- c()
 for(i in 1:EV2)
   for(j in 1:EV2){
@@ -53,12 +58,14 @@ for(i in 1:EV2)
   }
 gam1_truem <- matrix(gam1_true,EV2,EV2)
 
-# --- --- ---
+# Initialize counters and offline kernel estimators
 x <- c(); y <- c()
 N <- 0; mfull <- 0; N_gam <- 0; N_gam1 <- c()
 time <- c(); rss2 <- c(); rss2i <- c(); h2 <- c()
 gam1s <- list()
 
+# Offline procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   set.seed(12345 + K)
   mfull <- mfull + mk[K]
@@ -76,12 +83,14 @@ for(K in 1:Kmax){
     N_gam1 <- c(N_gam1,N_gam)
     
     t0 <- Sys.time()
+    # Bandwidth selection
     if(K<=300){
     C_gam <- C
     }else{
     C_gam <- C[300]
     }
     h_gam <- C * N_gam^(-1/8)
+    # Offline kernel derivative estimation for the covariance function 
     gam1 <- batch_LQuad2(u, v, eval_gam_mat, h_gam, N_gam, 2)$est
     t1 <- Sys.time()
     
