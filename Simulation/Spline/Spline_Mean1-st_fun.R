@@ -1,3 +1,21 @@
+# FUNCTION: estimatemuderivROBUSTv5
+# Purpose: Estimate the first derivative of the mean function 
+#          for streaming functional data using offline spline method.
+# Inputs:
+# x: Numeric vector (if d=1) or matrix of dimension n x d (if d=2).
+# y: Numeric vector of responses with length n.
+# eval_grid: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
+# k_folds: Integer. Number of folds used in cross-validation. Default = 5.
+# nbasis_grid: Numeric vector. Candidate numbers of B-spline basis functions. 
+#   Each value determines the complexity/flexibility of the spline basis.
+# lambda_grid: Numeric vector. Candidate smoothing parameters used in penalized spline fitting.
+#   Larger lambda values produce smoother estimates.
+#  Lfd_order: Integer. Order of the differential operator used in the roughness penalty.
+# Outputs: A list containing the first derivative estimation of the mean function, the mean function estimation, 
+           the spline-related parameter.
+# Dependencies:
+#   Requires the "fda" package.
+# ============================================================
 estimatemuderivROBUSTv5 <- function(x, y, eval_grid, 
                                     k_folds = 5,
                                     nbasis_grid = c(8, 12, 16, 20, 24),
