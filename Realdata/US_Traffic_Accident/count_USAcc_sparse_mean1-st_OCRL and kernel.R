@@ -1,6 +1,4 @@
 
-
-rm(list=ls())
 ### basic functions
 source("./basic_functions.R", encoding = 'UTF-8')
 
