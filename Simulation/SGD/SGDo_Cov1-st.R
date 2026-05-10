@@ -1,5 +1,4 @@
 ################# dense #################
-rm(list=ls())
 
 # Function definitions
 fun_mu <- function(t){ 5*sin(2*pi*t) }
