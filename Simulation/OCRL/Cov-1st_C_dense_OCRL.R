@@ -40,9 +40,9 @@ fun_phi <- function(t){
 G <- 0.9
 Kmax <- 300
 sub.streams <- c(1,seq(20,Kmax,20))
-mk <- rep(3, Kmax); mk[1] <- 10
 # Dense design setting:
 # each subject contains approximately 20 observations.
+mk <- rep(3, Kmax); mk[1] <- 10
 njk_mean <- 20; njk_std <- 2
 njk <- sapply(1:(2*5*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
 njk <- njk[which(njk<=25 & njk>=15)]
