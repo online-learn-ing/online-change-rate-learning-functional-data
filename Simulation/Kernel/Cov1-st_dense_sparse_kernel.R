@@ -1,5 +1,21 @@
 ################## dense & sparse - kernel ##################
-
+# ============================================================
+# SCRIPT: Cov1-st_dense_sparse_kernel.R
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the covariance function under both dense and sparse functional data settings
+#          using the offline kernel method.
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Construct the covariance-pair observations from within-subject measurements.
+#   3. Perform offline local quadratic regression for estimating the first-order partial derivative of the covariance function.
+#   4. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order covariance derivatives;
+#     - Bandwidth sequences;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 source("./basic functions.R", encoding = 'UTF-8')
 
 # Parameters and model setup
@@ -93,7 +109,7 @@ for(K in 1:Kmax){
     # Offline kernel derivative estimation for the covariance function 
     gam1 <- batch_LQuad2(u, v, eval_gam_mat, h_gam, N_gam, 2)$est
     t1 <- Sys.time()
-    
+    #save
     time <- c(time, difftime(t1,t0,units = 'secs'))
     rss2 <- c(rss2, mean((gam1 - gam1_true)^2))
     gam1m <- matrix(gam1,EV2,EV2)
