@@ -1,5 +1,20 @@
-###########################
 # Mean Derivative Estimation (Dense or Sparse) 
+# ============================================================
+# SCRIPT: SGDo_Mean1-st.R
+# Purpose: Estimate the mean function and its first derivative from streaming functional data 
+#          using the stochastic gradient descent with B-spline basis expansion.
+# Workflow:
+#   1. Generate dense or sparse functional observations.
+#   2. Construct B-spline basis representation.
+#   3. Initialize coefficients using ridge regression.
+#   4. Update spline coefficients online using SGD + RMSProp + momentum.
+#   5. Estimate the mean function and its derivative.
+#   6. Track estimation accuracy over streaming updates.
+# Output:
+#   - Estimated first-order derivatives;
+#   - Runtime;
+#   - Empirical MISE.
+# ============================================================
 
 library(fda)
 
@@ -39,12 +54,12 @@ gene_data <- function(mk, njk){
 }
 
 # Parameters
-
 Mpc <- 4
 lam <- ((1:Mpc)+1)^(-2)
-
+# Time points domain.
 a <- 0; b <- 1
 EV1 <- 100
+# Evaluation grid for the mean derivative estimation.
 eval_mu <- seq(a, b, length.out = EV1)
 mu_true <- fun_mu(eval_mu)
 mu_true1 <- fun_mu1(eval_mu)
@@ -80,14 +95,14 @@ deriv_mat <- matrix(NA, nrow=Kmax, ncol=EV1)
 mean_mat <- matrix(NA, nrow=Kmax, ncol=EV1)
 step_i <- 0
 
-# B-spline basis
+# B-spline basis construction
 nbasis <- 10
 norder <- 4
 basisObj <- create.bspline.basis(rangeval=c(a,b), nbasis=nbasis, norder=norder)
 eval_basis <- function(t) eval.basis(t, basisObj)
 eval_dbasis <- function(t) eval.basis(t, basisObj, Lfd=1)
 
-# 2nd order penalty
+# Roughness penalty matrix
 D2 <- diff(diag(nbasis), differences=2)
 Omega <- t(D2) %*% D2
 
@@ -104,7 +119,7 @@ mu_mom <- 0.9
 beta <- rep(0, nbasis)
 beta_bar <- rep(0, nbasis)
 
-#Warm-start: ridge regression on first W batches
+# Warm-start initialization using ridge regression
 
 t0 <- Sys.time()
 W <- min(5, Kmax)
@@ -136,7 +151,8 @@ for(K in 1:Kmax){
   y <- unlist(dat$y)
   mfull <- mfull + mk[K]
   
-  # Residuals
+  # Stochastic gradient descent procedure
+  # Each iteration K corresponds to one incoming data block.
   Phi <- eval_basis(x)
   resid <- y - Phi %*% beta
   
@@ -163,7 +179,7 @@ for(K in 1:Kmax){
   # Mean function estimate
   mu_est <- as.vector(eval_basis(eval_mu) %*% beta_bar)
   
-  # Record time, MSE, estimated curves
+  # Record time, MISE, estimated curves
   t1 <- Sys.time()
   time_vec <- c(time_vec, as.numeric(difftime(t1, t0, units = 'secs')))
   rss1_vec <- c(rss1_vec, mean((mu1_est - mu_true1)^2))
