@@ -2,8 +2,8 @@
 # ============================================================
 # SCRIPT: Cov-1st_C_dense_OCRL.R
 #
-# Purpose: Conduct the plug-in bandwidth constant for estimating the covariance function 
-#           under dense functional data using the proposed online change rate learning (OCRL) method.
+# Purpose: Conduct the plug-in bandwidth constant for estimating the first-order partial derivative of        
+#          the covariance function under dense functional data using the proposed online change rate learning (OCRL) method.
 # Workflow:
 #   1. Generate dense streaming functional data.
 #   2. Construct the covariance-pair observations from within-subject measurements.
