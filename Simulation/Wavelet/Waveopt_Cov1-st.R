@@ -1,6 +1,5 @@
 ##############################################
 # Covariance Derivative Estimation
-rm(list=ls())
 
 # Required libraries
 library(wavethresh)
