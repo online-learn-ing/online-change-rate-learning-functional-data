@@ -25,7 +25,7 @@
   #   n: Integer. Number of subjects.
   #   d: Integer (1 or 2). Dimensionality of the covariate x.
   # Output: Updated res_list containing the updated sufficient statistics 
-  #         and the updated candidate bandwidth centroids for online estimation based on local linear regression.
+  #         and candidate bandwidth centroids for online estimation based on local linear regression.
 # ============================================================
 {
   online_LL <- function(x, y, eval, h, L, res_list, N, n, d){
