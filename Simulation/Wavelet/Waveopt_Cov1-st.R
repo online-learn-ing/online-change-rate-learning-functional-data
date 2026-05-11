@@ -1,12 +1,25 @@
-##############################################
 # Covariance Derivative Estimation
-
+# ============================================================
+# SCRIPT: Waveopt_Cov1-st.R
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the covariance function under both dense and sparse functional data settings
+#          using the offline wavelet method.
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Construct the covariance-pair observations from within-subject measurements.
+#   3. Estimate the first-order partial derivative of the covariance function.
+#   4. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 # Required libraries
 library(wavethresh)
 library(pracma)
 library(dplyr)
 library(mgcv)
-library(data.table)
 source("./Waveopt_Cov1-st_fun.R", encoding = 'UTF-8')
 
 # 1. Function definitions
@@ -68,14 +81,15 @@ gam1_truem <- matrix(gam1_true, EV2, EV2)
 Kmax <- 60
 sub.streams <- c(1, seq(20, Kmax, 20))
 
-## --- Dense setup ---
+# Choose one of the following setups ("dense" or "sparse"):
+# Dense design setting
 njk_mean <- 25; njk_std <- 2
 mk <- rep(3, Kmax); mk[1] <- 10
 njk <- sapply(1:(2*5*Kmax), function(i){max(round(rnorm(1, njk_mean, njk_std)),2)})
 njk <- njk[which(njk<=30 & njk>=20)]
 njk <- njk[1:sum(mk)]
 
-## --- Sparse setup ---
+# Sparse design setting
 # mk_mean <- 18; mk_std <- 3
 # mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 # njk_mean <- 8; njk_std <- 2
@@ -86,7 +100,7 @@ njk <- njk[1:sum(mk)]
 set.seed(12345)
 
 # 3. Main simulation
-
+# Initialize counters and estimators
 mfull <- 0
 time_cov <- c()
 rss_cov <- c()
@@ -106,7 +120,7 @@ for(K in 1:Kmax) {
   rm(data_batch)
   mfull <- mfull + mk[K]
   
-  # When K is in sub.streams, estimate covariance derivative
+  # If K is in sub.streams, perform covariance derivative estimation
   if (K %in% sub.streams) {
     curve_indices <- rep(1:mfull, times = njk_cumulative)
     t_list <- split(x_batch, curve_indices)
@@ -115,12 +129,12 @@ for(K in 1:Kmax) {
     
     cat(sprintf("--- Covariance derivative estimation at K = %d, total curves: %d ---\n", K, mfull))
     t0 <- Sys.time()
-    # You need to ensure this function is sourced/loaded
     estimated_cov_deriv_matrix <- estimate_cov_deriv_WAVELET_GAM_V25_1(
       data_list = data_for_fpca,
       eval_grid = eval_gam_vec
     )
     t1 <- Sys.time()
+    #save
     time_cov <- c(time_cov, as.numeric(difftime(t1, t0, units = 'secs')))
     rss_cov <- c(rss_cov, mean((estimated_cov_deriv_matrix - gam1_truem)^2, na.rm = TRUE))
     cov_deriv_estimates[[as.character(K)]] <- estimated_cov_deriv_matrix
