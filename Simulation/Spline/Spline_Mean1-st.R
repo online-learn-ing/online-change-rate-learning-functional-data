@@ -94,7 +94,7 @@ for(K in 1:Kmax){
   data <- gene_data(mk[K], njk[(mfull-mk[K]+1):mfull])
   x <- c(x, unlist(data$t)); y <- c(y, unlist(data$y))
   rm(data)
-  # If K is in sub.streams, perform mean derivative estimation
+  # If K is in sub.streams, perform the mean derivative estimation
   if(K %in% sub.streams){
     t0 <- Sys.time()
     estimation_results <- estimatemuderivROBUSTv5(x, y, eval_grid = eval_mu)
