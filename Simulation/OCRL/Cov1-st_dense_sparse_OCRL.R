@@ -52,6 +52,7 @@ G <- 0.9
 Kmax <- 500
 L2 <- 20 # the length of the candidate bandwidth sequences
 
+# Choose one of the following setups ("dense" or "sparse"):
 # Dense design setting
 mk <- rep(3, Kmax); mk[1] <- 10
 njk_mean <- 20; njk_std <- 2
@@ -60,12 +61,12 @@ njk <- njk[which(njk<=25 & njk>=15)]
 njk <- njk[1:sum(mk)]
 
 # Sparse design setting
-mk_mean <- 18; mk_std <- 3
-mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
-njk_mean <- 8; njk_std <- 2
-njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
-njk <- njk[which(njk<=11 & njk>=5)]
-njk <- njk[1:sum(mk)]
+# mk_mean <- 18; mk_std <- 3
+# mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
+# njk_mean <- 8; njk_std <- 2
+# njk <- sapply(1:(2*mk_mean*Kmax),function(i){max(round(rnorm(1,njk_mean,njk_std)),2)})
+# njk <- njk[which(njk<=11 & njk>=5)]
+# njk <- njk[1:sum(mk)]
 
 # Calculate true covariance derivative surface
 gam1_true <- c()
