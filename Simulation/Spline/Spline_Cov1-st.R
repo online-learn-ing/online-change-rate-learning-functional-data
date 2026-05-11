@@ -1,4 +1,4 @@
-# Covariance Derivative Estimation
+# Derivative Estimation for the Covariance Function
 # ============================================================
 # SCRIPT: Spline_Cov1-st.R
 # Purpose: Conduct the simulation studies for estimating the first-order derivative of 
