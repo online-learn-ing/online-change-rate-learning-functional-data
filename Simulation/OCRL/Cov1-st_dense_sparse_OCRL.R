@@ -1,7 +1,7 @@
 ################## dense & sparse - online ##################
 # ============================================================
 # SCRIPT: Cov-1st_dense_sparse_OCRL.R
-# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+# Purpose: Conduct the simulation studies for estimating the first-order partial derivative of 
 #          the covariance function under both dense and sparse functional data settings
 #          using the proposed online change rate learning (OCRL) method.
 # Workflow:
