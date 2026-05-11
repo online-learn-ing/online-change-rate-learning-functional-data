@@ -1,7 +1,7 @@
 # Power_Consumption
 # SCRIPT: dense_mean1-st_OCRL_and_kernel.R
 # Purpose: Implement the proposed online change rate learning (OCRL) method and the offline kernel method 
-#          for estimating the first-order derivative of the mean function under dense and sparse functional data.  
+#          for estimating the first-order derivative of the mean function under dense power consumption data.  
 source("./basic functions.R", encoding = 'UTF-8')
 
 #### common parameters
