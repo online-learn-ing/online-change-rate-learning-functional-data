@@ -1,4 +1,26 @@
-# install.packages(c("mgcv", "dplyr", "wavethresh", "pracma", "data.table"))
+# FUNCTION: estimate_cov_deriv_WAVELET_GAM_V25_1
+# Purpose: Estimate the first-order partial derivative of the covariance function
+#          for streaming functional data using the offline wavelet method.
+# Inputs:
+# data_list: List containing:
+#       $t : list of observated time points for each subject;
+#       $y : list of response vectors for each subject.
+# eval_grid: Numeric vector of evaluation points.
+# J_dyadic: Integer. Dyadic resolution level used for the wavelet smoothing of the covariance function.
+# gam_max_points: Integer. Maximum number of points used for GAM fitting.
+# max_pairs_per_curve: Integer. Maximum number of covariance pairs sampled from each subject.
+# gam_k_base: Integer. Baseline tensor-product basis dimension used in the GAM refinement step.
+# gam_k_max: Integer. Maximum allowable GAM basis dimension.
+# mean_J_dyadic: Integer. Dyadic resolution level used for the wavelet smoothing of the mean function.
+# gam_k_power: Numeric scalar controlled the GAM basis dimension.
+# filter.number: Integer. Wavelet filter length used in the wavelet decomposition.
+# family: Character string. Wavelet family used for denoising.
+# gam_method: Character string. Smoothing parameter selection method.
+# wavelet_threshold_type: Character string. Thresholding type used in the wavelet denoising.
+# wavelet_threshold_policy: Character string. Thresholding policy used in the wavelet denoising.
+# verbose: Logical. Whether to print progress information.
+# Outputs: A list containing the first-order partial derivative estimation of the covariance function.
+# install.packages(c("mgcv", "dplyr", "wavethresh", "pracma"))
 
 estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
     data_list,
@@ -23,7 +45,7 @@ estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
   
   if (length(all_t) != length(all_y)) stop("Lengths of all_t and all_y do not match after NA removal.")
   if (length(unique(all_t)) < 4) stop("Not enough unique time points (< 4) to estimate mean function.")
-  
+  # Mean function estimator based the wavelet method
   wavelet_mean_smoother <- function(x, y, J, filt.num, fam, thresh_type, thresh_policy) {
     grid_len <- 2^J
     t_range <- range(x, na.rm = TRUE)
@@ -49,7 +71,7 @@ estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
         y_grid <- rep(mean(y, na.rm = TRUE), grid_len)
       }
     }
-    
+    # Wavelet denoising for the mean function
     wt_mean <- wavethresh::wd(y_grid, filter.number = filt.num, family = fam)
     wt_mean_thr <- wavethresh::threshold(wt_mean, type = thresh_type, policy = thresh_policy)
     y_smoothed_grid <- wavethresh::wr(wt_mean_thr)
@@ -58,13 +80,13 @@ estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
     
     return(mu_hat_func_inner)
   }
-  
+   # Step 1: Mean function estimation
   mu_hat_func <- wavelet_mean_smoother(
     x = all_t, y = all_y, J = mean_J_dyadic,
     filt.num = filter.number, fam = family,
     thresh_type = wavelet_threshold_type, thresh_policy = wavelet_threshold_policy
   )
-  
+  # Step 2: Construct raw covariance observations
   num_curves <- length(data_list$t)
   if (num_curves == 0) stop("data_list is empty.")
   
@@ -120,13 +142,13 @@ estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
   raw_cov_matrix[as.matrix(binned_cov[, c("s_bin", "t_bin")])] <- binned_cov$v_mean
   raw_cov_matrix <- (raw_cov_matrix + t(raw_cov_matrix)) / 2
   raw_cov_matrix[is.nan(raw_cov_matrix)] <- 0
-  
+  # Step 3: Two-dimensional wavelet denoising
   wt <- wavethresh::imwd(raw_cov_matrix, filter.number = filter.number, family = family)
   wt_thr <- wavethresh::threshold(wt, type = wavelet_threshold_type, policy = wavelet_threshold_policy)
   cov_wavelet_denoised_matrix <- wavethresh::imwr(wt_thr)
   cov_wavelet_denoised_matrix <- (cov_wavelet_denoised_matrix + t(cov_wavelet_denoised_matrix)) / 2
   
-  
+  # Step 4: GAM refinement of covariance surface
   k_val <- floor(gam_k_base * (num_curves / 10)^(gam_k_power))
   k_val <- min(k_val, gam_k_max); k_val <- max(k_val, 5)
   k_val_s <- min(k_val, length(unique(s_mids)) - 1); k_val_t <- min(k_val, length(unique(t_mids)) - 1)
@@ -151,7 +173,7 @@ estimate_cov_deriv_WAVELET_GAM_V25_1 <- function(
   final_smooth_vector <- predict(final_smoother, newdata = grid_for_pred)
   final_cov_matrix <- matrix(final_smooth_vector, nrow = length(eval_grid), ncol = length(eval_grid))
   final_cov_matrix <- (final_cov_matrix + t(final_cov_matrix)) / 2
-  
+  # Step 5: Computate the derivatives
   h <- eval_grid[2] - eval_grid[1]
   if (is.na(h) || h <= 0) stop("eval_grid must be equally spaced and have length > 1.")
   
