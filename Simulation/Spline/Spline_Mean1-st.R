@@ -1,10 +1,25 @@
-#############Mean1-st##################
-
+# Derivative Estimation for the Mean Function
+# ============================================================
+# SCRIPT: Spline_Mean1-st.R
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the mean function under both dense and sparse functional data settings
+#          using the offline spline method.
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Estimate the mean function and its derivative using robust spline smoothing.
+#   3. Apply derivative bias correction.
+#   4. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 # Required libraries
 library(fda)
 source("./Spline_Mean1-st_fun.R", encoding = 'UTF-8')
-# --- 1. Function definitions ---
 
+# --- 1. Function definitions ---
 # True mean function
 fun_mu <- function(t){ 5*sin(2*pi*t) }
 # True mean derivative
@@ -48,14 +63,15 @@ mu_true1 <- fun_mu1(eval_mu)
 Kmax <- 60
 sub.streams <- c(1, seq(20, Kmax, 20))
 
-## --- Dense setup ---
+# Choose one of the following setups ("dense" or "sparse"):
+# Dense design setting
 njk_mean <- 25; njk_std <- 2
 mk <- rep(3, Kmax); mk[1] <- 10
 njk <- sapply(1:(2*5*Kmax), function(i){max(round(rnorm(1, njk_mean, njk_std)),2)})
 njk <- njk[which(njk<=30 & njk>=20)]
 njk <- njk[1:sum(mk)]
 
-## --- Sparse setup ---
+# Sparse design setting
 # mk_mean <- 18; mk_std <- 3
 # mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 # njk_mean <- 8; njk_std <- 2
@@ -70,14 +86,15 @@ x <- c(); y <- c(); mfull <- 0
 time <- c(); rss1 <- c(); rss1i <- c(); rss <- c()
 deriv_mat <- matrix(NA, nrow=length(sub.streams), ncol=EV1)
 mus <- list()
-
+# Offline spline procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   # Accumulate new data
   mfull <- mfull + mk[K]
   data <- gene_data(mk[K], njk[(mfull-mk[K]+1):mfull])
   x <- c(x, unlist(data$t)); y <- c(y, unlist(data$y))
   rm(data)
-
+  # If K is in sub.streams, perform mean derivative estimation
   if(K %in% sub.streams){
     t0 <- Sys.time()
     estimation_results <- estimatemuderivROBUSTv5(x, y, eval_grid = eval_mu)
@@ -86,6 +103,7 @@ for(K in 1:Kmax){
     # Bias correction for the derivative
     mu1_est <- mu1_est - mean(mu1_est) + mean(mu_true1)
     t1 <- Sys.time()
+    #save
     i_stream <- which(sub.streams == K)
     time[i_stream] <- as.numeric(difftime(t1, t0, units = 'secs'))
     rss1[i_stream] <- mean((mu1_est - mu_true1)^2)
