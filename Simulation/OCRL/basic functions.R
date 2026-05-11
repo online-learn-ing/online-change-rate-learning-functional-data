@@ -9,8 +9,8 @@
 # 5. Kernel and auxiliary utility functions.
 #
 # The functions support both:
-#   d = 1 : the mean derivative estimation;
-#   d = 2 : the derivative estimation of the covariance .
+#   d = 1 : the first-order derivative estimation of the mean function;
+#   d = 2 : the first-order partial derivative estimation of the covariance function.
 # ============================================================
 # FUNCTION: online_LL
   # Purpose: Perform the online local linear regression for streaming functional data.
