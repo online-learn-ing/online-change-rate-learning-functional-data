@@ -19,7 +19,7 @@
   #   y: Numeric vector of responses with length n. 
   #   eval: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
   #   h: Numeric. Initial bandwidth parameter.
-  #   L: Integer. Number of candidate bandwidths.
+  #   L: Integer. Length of candidate bandwidth sequence.
   #   res_list: List. Contain the online sufficient statistics and centroids.
   #   N: Integer. The total number of measurements for all the subjects.
   #   n: Integer. The number of subjects.
