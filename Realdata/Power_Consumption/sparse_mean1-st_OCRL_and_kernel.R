@@ -1,5 +1,7 @@
-
-### basic functions
+# Power_Consumption
+# SCRIPT: sparse_mean1-st_OCRL_and_kernel.R
+# Purpose: Implement the proposed online change rate learning (OCRL) method and the offline kernel method 
+#          for estimating the first-order derivative of the mean function under sparse power consumption data.  
 source("./basic functions.R", encoding = 'UTF-8')
 
 
@@ -17,8 +19,7 @@ source("./basic functions.R", encoding = 'UTF-8')
 }
 
 
-###################### online ########################
-### mean
+############## OCRL mean derivative estimation ##################
 {
   # initialize
   {
@@ -105,7 +106,7 @@ source("./basic functions.R", encoding = 'UTF-8')
     }
     t1 <- Sys.time()
     
-    # combine
+    # save
     {
       time <- c(time,difftime(t1,t0,units = 'secs'))
       h1 <- c(h1, h_mu1)
@@ -120,7 +121,7 @@ source("./basic functions.R", encoding = 'UTF-8')
 }
 
 
-###################### batch ########################
+########### Oflline kernel mean derivative estimation ################
 sub.streams <- c(214,579,944,1310,1675,1889)#579,1310,1889
 ### mean
 {
@@ -156,7 +157,7 @@ sub.streams <- c(214,579,944,1310,1675,1889)#579,1310,1889
     
     if(K%in%sub.streams){
       print(paste('K=', K))
-      # mean function estimation
+      # main regression
       {
         h_theta_mu <- G * N^(-1/9)
         theta_mu <- batch_LQuar4(x, y, eval_mu, h_theta_mu, N, 1) 
