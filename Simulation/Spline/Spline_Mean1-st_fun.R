@@ -1,6 +1,6 @@
 # FUNCTION: estimatemuderivROBUSTv5
 # Purpose: Estimate the first derivative of the mean function 
-#          for streaming functional data using offline spline method.
+#          for streaming functional data using the offline spline method.
 # Inputs:
 # x: Numeric vector (if d=1) or matrix of dimension n x d (if d=2).
 # y: Numeric vector of responses with length n.
