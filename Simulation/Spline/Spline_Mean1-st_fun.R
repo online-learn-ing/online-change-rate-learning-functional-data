@@ -4,8 +4,8 @@
 # Inputs:
 # x: Numeric vector of length n. Observed time points.
 # y: Numeric vector of responses with length n.
-# eval_grid: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
-# k_folds: Integer. Number of folds used in cross-validation. Default = 5.
+# eval_grid: Numeric vector of evaluation points.
+# k_folds: Integer. Number of folds used in cross-validation. 
 # nbasis_grid: Numeric vector. Candidate numbers of B-spline basis functions. 
 # Each value determines the complexity/flexibility of the spline basis.
 # lambda_grid: Numeric vector. Candidate smoothing parameters used in penalized spline fitting.
