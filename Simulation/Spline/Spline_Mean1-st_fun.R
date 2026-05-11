@@ -2,7 +2,7 @@
 # Purpose: Estimate the first derivative of the mean function 
 #          for streaming functional data using the offline spline method.
 # Inputs:
-# x: Numeric vector (if d=1) or matrix of dimension n x d (if d=2).
+# x: Numeric vector of length n. Observed time points.
 # y: Numeric vector of responses with length n.
 # eval_grid: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
 # k_folds: Integer. Number of folds used in cross-validation. Default = 5.
