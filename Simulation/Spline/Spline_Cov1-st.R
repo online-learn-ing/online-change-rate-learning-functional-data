@@ -7,12 +7,12 @@
 # Workflow:
 #   1. Generate streaming functional data under dense or sparse designs.
 #   2. Construct the covariance-pair observations from within-subject measurements.
-#   3. Apply the adaptive spline + GAM covariance derivative estimator;
+#   3. Apply the adaptive spline + GAM covariance derivative estimator.
 #   4. Estimate the first-order partial derivative of the covariance function.
 #   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
 # Output:
 #   The script produces:
-#     - Estimated first-order covariance derivatives;
+#     - Estimated first-order derivatives;
 #     - Runtime;
 #     - Empirical MISE.
 # ============================================================
