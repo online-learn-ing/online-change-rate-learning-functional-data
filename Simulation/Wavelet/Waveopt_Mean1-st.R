@@ -1,6 +1,21 @@
-##############################################
 # Mean Derivative Estimation
-
+# ============================================================
+# SCRIPT: Waveopt_Mean1-st.R
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the mean function under both dense and sparse functional data settings
+#          using the offline wavelet method.
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Estimate the mean function. 
+#   3. Denoise the estimated mean function.
+#   4. Estimate its derivative.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order derivatives;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 # Required libraries
 library(fda.usc)
 library(KernSmooth)
@@ -51,14 +66,15 @@ mu_true1 <- fun_mu1(eval_mu)
 Kmax <- 40
 sub.streams <- c(1, seq(20, Kmax, 20))
 
-## --- Dense setup ---
+# Choose one of the following setups ("dense" or "sparse"):
+# Dense design setting
 njk_mean <- 25; njk_std <- 2
 mk <- rep(3, Kmax); mk[1] <- 10
 njk <- sapply(1:(2*5*Kmax), function(i){max(round(rnorm(1, njk_mean, njk_std)),2)})
 njk <- njk[which(njk<=30 & njk>=20)]
 njk <- njk[1:sum(mk)]
 
-## --- Sparse setup ---
+# Sparse design setting
 # mk_mean <- 18; mk_std <- 3
 # mk <- ceiling(rnorm(Kmax, mk_mean, mk_std)); mk[1] <- 40
 # njk_mean <- 8; njk_std <- 2
@@ -68,7 +84,7 @@ njk <- njk[1:sum(mk)]
 
 set.seed(12345)
 
-# 3. Main single simulation
+# 3. Main simulation
 
 x <- c(); y <- c()
 mfull <- 0
@@ -78,14 +94,15 @@ rss1 <- c()
 rss1i <- c()
 deriv_mat <- NULL
 mus <- list()
-
+# Offline wavelet procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax){
   # Accumulate new data
   mfull <- mfull + mk[K]
   data <- gene_data(mk[K], njk[(mfull-mk[K]+1):mfull])
   x <- c(x, unlist(data$t)); y <- c(y, unlist(data$y))
   N <- length(y)
-  
+   # If K is in sub.streams, perform the mean derivative estimation
   if(K %in% sub.streams){
     t0 <- Sys.time()
     # Step 1: Oversmoothed local polynomial mean estimation
@@ -113,12 +130,11 @@ for(K in 1:Kmax){
                                     type   = "hard",
                                     policy = "universal")
     mu_denoised_grid <- wavethresh::wr(wt_thr)
-    # Step 4: Compute derivative using fda.usc
+    # Step 4: Compute the derivative
     mat <- matrix(mu_denoised_grid, nrow = 1)
     fdata_obj <- fdata(mat, argvals = grid_dyadic)
     fdata_deriv <- fdata.deriv(fdata_obj, nderiv = 1)
     mu_d <- fdata_deriv$data[1, ]
-    # Step 5: Interpolate derivative back to evaluation grid
     mu1_est <- approx(x = grid_dyadic, y = mu_d, xout = eval_mu, rule = 2)$y
     # Bias correction for derivative
     mu1_est <- mu1_est - mean(mu1_est) + mean(mu_true1)
