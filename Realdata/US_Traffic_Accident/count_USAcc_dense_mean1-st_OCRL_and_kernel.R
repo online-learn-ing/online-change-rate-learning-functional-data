@@ -1,5 +1,7 @@
-
-### basic functions
+# US_Traffic_Accident
+# SCRIPT: dcount_USAcc_dense_mean1-st_OCRL_and_kernel.R
+# Purpose: Implement the proposed online change rate learning (OCRL) method and the offline kernel method 
+#          for estimating the first-order derivative of the mean function under dense US traffic accident data.
 source("./basic_functions.R", encoding = 'UTF-8')
 
 #### common parameters
@@ -15,8 +17,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
   R <- 1#112
 }
 
-###################### online ########################
-### mean
+############## OCRL mean derivative estimation ##################
 {
   # initialize
   {
@@ -174,7 +175,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
   save(mus1, h1, time, sigma,sigma_mu1,theta_mu1, file="dense_count_USAcc_res_mean1_online.Rdata")
 }
 
-###################### batch ########################
+########### Oflline kernel mean derivative estimation ################
 sub.streams <- c(365,1092,1783,1848)
 #sub.streams <- c(1848)
 ### mean
