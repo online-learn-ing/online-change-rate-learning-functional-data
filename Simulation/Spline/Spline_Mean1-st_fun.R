@@ -12,7 +12,7 @@
 #   Larger lambda values produce smoother estimates.
 #  Lfd_order: Integer. Order of the differential operator used in the roughness penalty.
 # Outputs: A list containing the first derivative estimation of the mean function, the mean function estimation, 
-           the spline-related parameter.
+#          the spline-related parameter.
 # Dependencies:
 #   Requires the "fda" package.
 # ============================================================
