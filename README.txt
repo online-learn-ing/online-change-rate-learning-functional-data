@@ -51,7 +51,10 @@ To reproduce the numerical results in the manuscript, users may follow the workf
 (1). Navigate to the directory Simulation.
 (2). Choose one of the above subdirectories depending on the method of interest.
 (3). Run the corresponding scripts according to the sampling scheme:
-*_dense_*.R for dense functional data, *_sparse_*.R for sparse functional data,*_Mean1-st_*.R for the first-order derivative estimation of the mean function, *_Cov1-st_*.R for the first-order partial derivative of the covariance function.
+*_dense_*.R for dense functional data, 
+*_sparse_*.R for sparse functional data,
+*_Mean1-st_*.R for the first-order derivative estimation of the mean function, 
+*_Cov1-st_*.R for the first-order partial derivative of the covariance function.
 
 The following examples reproduce the dense simulation result for the first-order derivatives of the mean and covariance functions using the proposed OCRL method.
 
