@@ -1,5 +1,7 @@
-
-### basic functions
+# US_Traffic_Accident
+# SCRIPT: count_USAcc_sparse_mean1-st_OCRL and kernel.R
+# Purpose: Implement the proposed online change rate learning (OCRL) method and the offline kernel method 
+#          for estimating the first-order derivative of the mean function under sparse US traffic accident data.
 source("./basic_functions.R", encoding = 'UTF-8')
 
 #### common parameters
@@ -16,8 +18,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
 }
 
 
-###################### online ########################
-### mean
+############## OCRL mean derivative estimation ##################
 {
   # initialize
   {
@@ -104,7 +105,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
       }
       t1 <- Sys.time()
       
-      # combine
+      # save
       {
         time <- c(time,difftime(t1,t0,units = 'secs'))
         h1 <- c(h1, h_mu1)
@@ -118,7 +119,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
   save(mus1, h1, time,sigma_mu1,theta_mu1, file="./sparse_count_USAcc_res_mean1_online.Rdata")
 }
 
-###################### batch ########################
+########### Offline kernel mean derivative estimation ################
 sub.streams <- c(365,1092,1783)
 ### mean
 {
@@ -155,7 +156,7 @@ sub.streams <- c(365,1092,1783)
       
       if(K%in%sub.streams){
         print(paste('K=', K))
-        # mean function estimation
+        # main regression
         {
           h_theta_mu <- G * N^(-1/9)
           theta_mu <- batch_LQuar4(x, y, eval_mu, h_theta_mu, N, 1) 
