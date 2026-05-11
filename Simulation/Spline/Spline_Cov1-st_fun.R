@@ -1,3 +1,19 @@
+# FUNCTION: estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5
+# Purpose: Estimate the first-order partial derivative of the covariance function
+#          for streaming functional data using the offline spline method.
+# Inputs:
+# id: Numeric or character vector of length n. Subject identifiers corresponding to each observation.
+# x: Numeric vector of length n. Observation time points.
+# y: Numeric vector of responses with length n.
+# eval_grid: Numeric vector of evaluation points.
+# n_basis_mean: Integer. Number of B-spline basis functions used for the mean function estimation.
+# lambda_grid_size: Integer. Candidate smoothing parameters used in cross-validation.
+# k_folds: Number of folds used in cross-validation.
+# gam_k_base: Integer. Baseline tensor-product basis dimension for the GAM refinement.
+# gam_k_power: Numeric scalar. Growth rate controlling how the GAM basis dimension increases with sample size.
+# gam_k_max: Integer. Maximum allowable GAM basis dimension.
+# seed: Integer. Random seed for reproducibility.
+# Outputs: A list containing the first-order partial derivative estimation of the covariance function.
 # install.packages(c("fda", "Matrix", "foreach", "mgcv", "pracma"))
 
 estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_grid,
@@ -10,20 +26,24 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
                                                                seed = 12345) {
   
   set.seed(seed)
-
+  # Compute row-wise Kronecker products between two matrices.
   row_kronecker_product <- function(X, Y) {
     if (nrow(X) != nrow(Y)) stop("X and Y nrow"); n_row <- nrow(X); n_col_X <- ncol(X); n_col_Y <- ncol(Y)
     result <- matrix(0, nrow = n_row, ncol = n_col_X * n_col_Y); for (i in 1:n_row) result[i, ] <- kronecker(X[i, ], Y[i, ]); return(result)
   }
+  # Construct observation range and spline basis
   raw_range <- range(c(x, eval_grid)); range_span <- raw_range[2] - raw_range[1]
   full_range <- c(raw_range[1] - 0.001 * range_span, raw_range[2] + 0.001 * range_span)
+   # Mean function estimation
   mean_basis <- create.bspline.basis(full_range, n_basis_mean, norder = 5)
   mean_lambda_grid <- 10^seq(-2, -12, length.out = 20)
+  # Generalized cross-validation for mean smoothing
   gcv_scores <- sapply(mean_lambda_grid, function(lambda) { smooth_obj <- smooth.basis(x, y, fdPar(mean_basis, 3, lambda)); if (is.null(smooth_obj$gcv)) 1e9 else smooth_obj$gcv })
   best_mean_lambda <- mean_lambda_grid[which.min(gcv_scores)]
   mean_fdPar <- fdPar(mean_basis, Lfdobj = 3, lambda = best_mean_lambda)
   mean_smooth <- smooth.basis(x, y, mean_fdPar); mu_est_func <- mean_smooth$fd
   residuals <- y - eval.fd(x, mu_est_func)
+  # Construct raw covariance observations
   data <- data.frame(id = id, t = x, res = residuals); unique_ids <- unique(id)
   num_curves <- length(unique_ids) 
   s_raw_full <- c(); t_raw_full <- c(); cov_raw_full <- c()
@@ -33,6 +53,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
     s_raw_full <- c(s_raw_full, curve_data$t[idx_pairs$i]); t_raw_full <- c(t_raw_full, curve_data$t[idx_pairs$j])
     cov_raw_full <- c(cov_raw_full, curve_data$res[idx_pairs$i] * curve_data$res[idx_pairs$j])
   }
+  # Adaptive binning of covariance observations
   num_points <- length(cov_raw_full); n_bins <- round(25 + (num_points/10000)^(1/3) * 15); n_bins <- max(25, min(100, n_bins))
   bin_breaks <- seq(full_range[1], full_range[2], length.out = n_bins + 1)
   binned_df <- data.frame(s_idx = cut(s_raw_full, breaks = bin_breaks, include.lowest = TRUE, labels = FALSE),
@@ -41,12 +62,14 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   binned_df_clean <- na.omit(binned_df); binned_agg <- aggregate(cov ~ s_idx + t_idx, data = binned_df_clean, FUN = mean)
   bin_centers <- (bin_breaks[-1] + bin_breaks[-(n_bins + 1)]) / 2
   s_model_data_orig <- bin_centers[binned_agg$s_idx]; t_model_data_orig <- bin_centers[binned_agg$t_idx]; cov_model_data_orig <- binned_agg$cov
+  # Tensor-product spline covariance estimation
   n_basis_cov <- round(15 + (length(cov_model_data_orig)/100)^(1/3) * 5); n_basis_cov <- max(15, min(50, n_basis_cov))
   s_basis <- create.bspline.basis(full_range, n_basis_cov, norder = 4); t_basis <- create.bspline.basis(full_range, n_basis_cov, norder = 4)
   P_s_pen <- Matrix(bsplinepen(s_basis, Lfdobj = 2), sparse = TRUE); P_t_pen <- Matrix(bsplinepen(t_basis, Lfdobj = 2), sparse = TRUE)
   P_s_ident <- Diagonal(n_basis_cov); P_t_ident <- Diagonal(n_basis_cov)
   log_lambda_min <- -8; log_lambda_max <- -2.5 - log10(length(cov_model_data_orig))/5; log_lambda_max <- min(-2.0, log_lambda_max)
   lambda_grid <- 10^seq(log_lambda_max, log_lambda_min, length.out = lambda_grid_size)
+  # Initial covariance fit
   lambda_init <- lambda_grid[floor(length(lambda_grid) * 0.6)]
   B_tensor_full_orig <- row_kronecker_product(eval.basis(s_model_data_orig, s_basis), eval.basis(t_model_data_orig, t_basis))
   BtB_full_orig <- crossprod(B_tensor_full_orig); Bty_full_orig <- crossprod(B_tensor_full_orig, cov_model_data_orig)
@@ -54,6 +77,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   LHS_init <- BtB_full_orig + R_init
   init_coefs_matrix <- matrix(as.vector(solve(LHS_init, Bty_full_orig)), nrow = n_basis_cov)
   C_init_bifd <- bifd(coef = init_coefs_matrix, sbasisobj = s_basis, tbasisobj = t_basis)
+  # Adaptive roughness weights  
   n_model_pts <- length(s_model_data_orig)
   s_rough_vec <- numeric(n_model_pts); t_rough_vec <- numeric(n_model_pts)
   for(i in 1:n_model_pts) {
@@ -66,7 +90,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   s_model_data <- s_model_data_orig[valid_idx]; t_model_data <- t_model_data_orig[valid_idx]
   cov_model_data <- cov_model_data_orig[valid_idx]; point_weights_raw <- point_weights_orig[valid_idx]
   point_weights <- pmax(point_weights_raw, quantile(point_weights_raw, 0.1)); point_weights <- point_weights / mean(point_weights)
- 
+  # Cross-validation for covariance smoothing parameter
   set.seed(seed); folds_idx <- sample(1:k_folds, length(cov_model_data), replace = TRUE)
   cv_errors_list <- foreach(k = 1:k_folds, .packages=c("Matrix","fda"), .export=c("row_kronecker_product", "s_model_data", "t_model_data", "cov_model_data", "point_weights", "s_basis", "t_basis", "lambda_grid", "folds_idx", "P_s_pen", "P_t_pen", "P_s_ident", "P_t_ident")) %dopar% {
     train_idx <- which(folds_idx != k); test_idx <- which(folds_idx == k)
@@ -88,6 +112,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   }
   cv_errors_matrix <- do.call(rbind, cv_errors_list); mean_cv_errors <- colMeans(cv_errors_matrix, na.rm = TRUE)
   best_lambda <- if (all(is.nan(mean_cv_errors))) lambda_grid[floor(length(lambda_grid) / 2)] else lambda_grid[which.min(mean_cv_errors)]
+  # Final covariance estimation 
   W_full_mat <- Diagonal(x = point_weights); B_tensor_full_unweighted <- row_kronecker_product(eval.basis(s_model_data, s_basis), eval.basis(t_model_data, t_basis))
   B_tensor_full <- W_full_mat %*% B_tensor_full_unweighted; cov_model_data_weighted <- point_weights * cov_model_data
   BtB_full <- crossprod(B_tensor_full); Bty_full <- crossprod(B_tensor_full, cov_model_data_weighted)
@@ -95,7 +120,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   LHS_final <- BtB_full + R_final; final_coefs_matrix <- matrix(as.vector(solve(LHS_final, Bty_full)), nrow = n_basis_cov)
   C_est_bifd <- bifd(coef = final_coefs_matrix, sbasisobj = s_basis, tbasisobj = t_basis)
   cat(sprintf("--- STAGE 1 finished. optimal lambda = %s ---\n", format(best_lambda, scientific=T)))
-  
+  # GAM refinement of covariance surface
   J_dyadic <- 8
   refine_grid_size <- 2^J_dyadic
   refine_grid_points <- seq(full_range[1], full_range[2], length.out = refine_grid_size)
@@ -112,7 +137,7 @@ estimate_cov_deriv_FULLY_ADAPTIVE_SPLINE_GAM_V19_5 <- function(id, x, y, eval_gr
   k_val_gam <- max(k_val_gam, 10)
   
   final_smoother <- mgcv::gam(v ~ te(s, t, k = k_val_gam), data = gam_input_df, method = "REML")
-  
+  # Compute derivatives
   grid_for_pred <- expand.grid(s = eval_grid, t = eval_grid)
   final_smooth_vector <- predict(final_smoother, newdata = grid_for_pred)
   final_cov_matrix <- matrix(final_smooth_vector, nrow = length(eval_grid), ncol = length(eval_grid))
