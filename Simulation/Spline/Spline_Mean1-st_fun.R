@@ -7,14 +7,13 @@
 # eval_grid: Numeric vector (length EV) or matrix (EV x 2) of evaluation points.
 # k_folds: Integer. Number of folds used in cross-validation. Default = 5.
 # nbasis_grid: Numeric vector. Candidate numbers of B-spline basis functions. 
-#   Each value determines the complexity/flexibility of the spline basis.
+# Each value determines the complexity/flexibility of the spline basis.
 # lambda_grid: Numeric vector. Candidate smoothing parameters used in penalized spline fitting.
-#   Larger lambda values produce smoother estimates.
-#  Lfd_order: Integer. Order of the differential operator used in the roughness penalty.
+# Larger lambda values produce smoother estimates.
+# Lfd_order: Integer. Order of the differential operator used in the roughness penalty.
 # Outputs: A list containing the first derivative estimation of the mean function, the mean function estimation, 
 #          the spline-related parameter.
-# Dependencies:
-#   Requires the "fda" package.
+# Dependencies: Requires the "fda" package.
 # ============================================================
 estimatemuderivROBUSTv5 <- function(x, y, eval_grid, 
                                     k_folds = 5,
