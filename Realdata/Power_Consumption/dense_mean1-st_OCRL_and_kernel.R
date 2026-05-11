@@ -1,5 +1,7 @@
-
-### basic functions
+# Power_Consumption
+# SCRIPT: dense_mean1-st_OCRL_and_kernel.R
+# Purpose: Implement the proposed online change rate learning (OCRL) method and the offline kernel method 
+#          for estimating the first-order derivative of the mean function under dense and sparse functional data.  
 source("./basic functions.R", encoding = 'UTF-8')
 
 #### common parameters
@@ -15,8 +17,7 @@ source("./basic functions.R", encoding = 'UTF-8')
   R <- 1#112
 }
 
-###################### online ########################
-### mean
+############## OCRL mean derivative estimation ##################
 {
   # initialize
   {
@@ -62,7 +63,7 @@ source("./basic functions.R", encoding = 'UTF-8')
     theta_mu <- 0; sigma_mu <- 0; sigma_eps <- 0
     h_old <- 1
   }
-  # update
+  # Streaming Data Update
   for(year in 2013:2018){#data each year 
   load(paste(year,'dense_fdda.Rdata',sep=''))
   Kmax <- length(datafull$block) + start
@@ -161,7 +162,7 @@ source("./basic functions.R", encoding = 'UTF-8')
     }
     t1 <- Sys.time()
     
-    # combine
+    # save
     {
       time <- c(time,difftime(t1,t0,units = 'secs'))
       h1 <- c(h1, h_mu1)
@@ -177,7 +178,7 @@ source("./basic functions.R", encoding = 'UTF-8')
 }
 
 
-###################### batch ########################
+########### Oflline kernel mean derivative estimation ################
 sub.streams <- c(214)#,1310,1889
 ### mean
 {
@@ -293,9 +294,7 @@ sub.streams <- c(214)#,1310,1889
 }
 
 
-
-#####baseline
-###################### batch ########################
+###################### baseline ########################
 sub.streams <- c(214,579,944,1310,1675,1889)#579,1310,1889
 ### mean
 {
