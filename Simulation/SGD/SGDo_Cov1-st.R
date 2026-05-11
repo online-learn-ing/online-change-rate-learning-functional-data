@@ -6,10 +6,9 @@
 # Workflow:
 #   1. Generate dense or sparse steaming functional data.
 #   2. Construct the covariance-pair observations within-subject measurements.
-#   3. Initialize the covariance estimator using ridge regression.
-#   4. Recursively update the spline coefficients using SGD.
-#   5. Estimate the first-order partial derivative of the covariance function.
-#   6. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+#   3. Recursively update the spline coefficients using SGD.
+#   4. Estimate the first-order partial derivative of the covariance function.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
 # Output:
 #   The script produces:
 #     - Estimated first-order covariance derivatives;
