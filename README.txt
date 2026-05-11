@@ -56,7 +56,7 @@ To reproduce the numerical results in the manuscript, users may follow the workf
 *_Mean1-st_*.R for the first-order derivative estimation of the mean function, 
 *_Cov1-st_*.R for the first-order partial derivative of the covariance function.
 
-The following examples reproduce the dense simulation result for the first-order derivatives of the mean and covariance functions using the proposed OCRL method.
+The following examples reproduce the dense simulation results for the first-order derivatives of the mean and covariance functions using the proposed OCRL method.
 
 # mean-1st 
 setwd("Simulation/OCRL")
@@ -72,8 +72,7 @@ Running the above scripts generates the estimated results and the corresponding 
 
 2. Real Data Applications
 
-The real data analyses are located in the directory Realdata. The empirical analyses can be reproduced by running the R.file in the sub-directory.
-
+The real data analyses are located in the directory Realdata. The empirical analyses can be reproduced by running the R.file in the corresponding subdirectories.
 
 
 
