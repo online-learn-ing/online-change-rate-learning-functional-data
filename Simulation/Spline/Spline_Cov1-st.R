@@ -1,6 +1,21 @@
-###############################
 # Covariance Derivative Estimation
-
+# ============================================================
+# SCRIPT: Spline_Cov1-st.R
+# Purpose: Conduct the simulation studies for estimating the first-order derivative of 
+#          the covariance function under both dense and sparse functional data settings
+#          using the offline spline method.
+# Workflow:
+#   1. Generate streaming functional data under dense or sparse designs.
+#   2. Construct the covariance-pair observations from within-subject measurements.
+#   3. Apply the adaptive spline + GAM covariance derivative estimator;
+#   4. Estimate the first-order partial derivative of the covariance function.
+#   5. Evaluate the estimation accuracy using the mean integrated squared error (MISE).
+# Output:
+#   The script produces:
+#     - Estimated first-order covariance derivatives;
+#     - Runtime;
+#     - Empirical MISE.
+# ============================================================
 # Required libraries
 library(fda)
 library(Matrix)
@@ -69,7 +84,8 @@ for(i in 1:EV2)
   }
 gam1_truem <- matrix(gam1_true, EV2, EV2)
 
-#--------------dense------------------
+# Choose one of the following setups ("dense" or "sparse"):
+# Dense design setting
 Kmax <- 80
 sub.streams <- c(1, seq(20, Kmax, 20)) # At which K to evaluate and record
 set.seed(2024)
@@ -79,7 +95,7 @@ njk <- sapply(1:(2*5*Kmax), function(i){max(round(rnorm(1, njk_mean, njk_std)), 
 njk <- njk[which(njk<=30 & njk>=20)]
 njk <- njk[1:sum(mk)]
 
-#-------------sparse------------------
+# Sparse design setting
 #Kmax <- 40 #
 #set.seed(2024)
 #sds <- sample(1:2^20,R)
@@ -94,6 +110,7 @@ njk <- njk[1:sum(mk)]
 # 3. Main simulation
 
 set.seed(12345)
+# Initialize counters and estimators
 x <- c(); y <- c(); id <- c()
 mfull <- 0
 time_cov <- c()
@@ -102,7 +119,8 @@ rss2i <- c()
 cov_deriv_estimates <- list()
 last_subject_id <- 0
 
-# Loop through batches
+# Offline spline procedure
+# Each iteration K corresponds to one incoming data block.
 for(K in 1:Kmax) {
   # 1. Determine number of new subjects for this batch
   num_new_subjects <- mk[K]
@@ -134,6 +152,7 @@ for(K in 1:Kmax) {
     )
     estimated_cov_deriv_matrix <- estimation_results
     t1 <- Sys.time()
+    #save
     time_cov <- c(time_cov, as.numeric(difftime(t1, t0, units = 'secs')))
     rss_cov <- c(rss_cov, mean((estimated_cov_deriv_matrix - gam1_truem)^2, na.rm = TRUE))
     cov_deriv_estimates[[as.character(K)]] <- estimated_cov_deriv_matrix
