@@ -21,8 +21,8 @@
   #   h: Numeric. Initial bandwidth parameter.
   #   L: Integer. Length of candidate bandwidth sequence.
   #   res_list: List. Contain the online sufficient statistics and centroids.
-  #   N: Integer. The total number of measurements for all the subjects.
-  #   n: Integer. The number of subjects.
+  #   N: Integer. Total number of measurements for all the subjects.
+  #   n: Integer. Number of subjects.
   #   d: Integer (1 or 2). Dimensionality of the covariate x.
   # Output: Updated res_list containing the updated sufficient statistics 
   #         and the updated candidate bandwidth centroids for online estimation based on local linear regression.
