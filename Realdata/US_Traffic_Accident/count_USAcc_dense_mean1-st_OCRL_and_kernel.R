@@ -175,7 +175,7 @@ source("./basic_functions.R", encoding = 'UTF-8')
   save(mus1, h1, time, sigma,sigma_mu1,theta_mu1, file="dense_count_USAcc_res_mean1_online.Rdata")
 }
 
-########### Oflline kernel mean derivative estimation ################
+########### Offline kernel mean derivative estimation ################
 sub.streams <- c(365,1092,1783,1848)
 #sub.streams <- c(1848)
 ### mean
