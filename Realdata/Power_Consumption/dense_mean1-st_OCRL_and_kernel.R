@@ -178,7 +178,7 @@ source("./basic functions.R", encoding = 'UTF-8')
 }
 
 
-########### Oflline kernel mean derivative estimation ################
+########### Offline kernel mean derivative estimation ################
 sub.streams <- c(214)#,1310,1889
 ### mean
 {
