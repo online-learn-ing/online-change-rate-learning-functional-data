@@ -43,7 +43,7 @@ Overview
 
 # Reproducibility Workflow
 
-The code was developed under R version 4.4.2 and depends only on widely used CRAN packages, including doParallel, dplyr, fda, fda.usc, foreach, KernSmooth, Matrix, mgcv, pracma, and wavethresh.
+The code was developed under R version 4.3.1 and depends only on widely used CRAN packages, including doParallel, dplyr, fda, fda.usc, foreach, KernSmooth, Matrix, mgcv, pracma, and wavethresh.
 
 To reproduce the numerical results in the manuscript, users may follow the workflow below.
 
